@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import MagicMock
+
+import pytest
 
 from opensage.toolbox.general.bash_task_manager import BashTaskManager
 

@@ -48,7 +48,7 @@ class BuildVerifierPlugin(BasePlugin):
             logger.warning(f"[BuildVerifier] Could not get sandbox: {e}")
             return None
 
-        project_type = self._detect_project_type(sandbox)
+        project_type = await self._detect_project_type(sandbox)
         logger.info(f"[BuildVerifier] Detected project type: {project_type}")
 
         if attempts >= 2:
@@ -73,7 +73,9 @@ class BuildVerifierPlugin(BasePlugin):
 
         logger.info(f"[BuildVerifier] Running: {build_cmd}")
         try:
-            output, exit_code = sandbox.run_command_in_container(build_cmd, timeout=120)
+            output, exit_code = await sandbox.arun_command_in_container(
+                build_cmd, timeout=120
+            )
         except Exception as e:
             logger.warning(f"[BuildVerifier] Build command failed to execute: {e}")
             return None
@@ -103,7 +105,7 @@ class BuildVerifierPlugin(BasePlugin):
 
         return None
 
-    def _detect_project_type(self, sandbox) -> str:
+    async def _detect_project_type(self, sandbox) -> str:
         """Detect the project type based on config files in /app."""
         checks = [
             ("go.mod", "go"),
@@ -115,7 +117,7 @@ class BuildVerifierPlugin(BasePlugin):
 
         for filename, project_type in checks:
             try:
-                _, exit_code = sandbox.run_command_in_container(
+                _, exit_code = await sandbox.arun_command_in_container(
                     f"test -f /app/{filename}", timeout=5
                 )
                 if exit_code == 0:

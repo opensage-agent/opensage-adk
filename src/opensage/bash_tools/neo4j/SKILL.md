@@ -13,7 +13,7 @@ Category of tools for interacting with Neo4j graph databases. These tools help q
 
 ## Usage
 
-Use these tools to run Cypher queries against Neo4j for code analysis workflows.
+Use these tools to run Cypher queries against Neo4j for code analysis workflows. The default database is `analysis`, populated by Joern/CodeQL initializers — see `bash_tools/static_analysis/SKILL.md` for the schema (`METHOD` / `TESTCASE` nodes; `CG_CALL` / `CG_MAYBE_INDIRECT_CALL` / `COVERS` relationships). Pass `--database <name>` to target a different database.
 
 ## Requires Sandbox
 

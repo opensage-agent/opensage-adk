@@ -1,0 +1,16 @@
+from google.adk.tools.mcp_tool.mcp_toolset import SseConnectionParams
+
+from opensage.agents.opensage_agent import OpenSageMCPToolset
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import get_mcp_url_from_session_id
+
+
+@requires_sandbox("pyghidra_mcp")
+def get_toolset(opensage_session_id: str) -> OpenSageMCPToolset:
+    """Create a named MCP toolset for the pyghidra MCP server."""
+    url = get_mcp_url_from_session_id("pyghidra_mcp", opensage_session_id)
+    return OpenSageMCPToolset(
+        name="pyghidra_mcp",
+        connection_params=SseConnectionParams(url=url),
+        tool_name_prefix="pyghidra_mcp",
+    )

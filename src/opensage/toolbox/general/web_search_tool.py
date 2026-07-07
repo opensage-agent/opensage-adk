@@ -34,9 +34,10 @@ class WebSearchTool(BaseTool):
     Example::
 
         from opensage.toolbox.general.web_search_tool import WebSearchTool
+        from opensage.utils.agent_utils import create_litellm_model
 
         agent = OpenSageAgent(
-            model=LiteLlm(model="anthropic/claude-sonnet-4-6"),
+            model=create_litellm_model("anthropic/claude-sonnet-4-6"),
             tools=[bash_tool_main, WebSearchTool(search_context_size="medium")],
         )
     """

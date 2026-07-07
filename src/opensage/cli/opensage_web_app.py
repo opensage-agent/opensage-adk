@@ -7,8 +7,10 @@ import os
 import tempfile
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional
+from urllib.parse import urlencode
 
 import graphviz
+import pydantic
 from fastapi import (
     FastAPI,
     File,
@@ -23,7 +25,6 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
-    HTMLResponse,
     PlainTextResponse,
     RedirectResponse,
     StreamingResponse,
@@ -31,8 +32,6 @@ from fastapi.responses import (
 from fastapi.staticfiles import StaticFiles
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.live_request_queue import LiveRequest, LiveRequestQueue
-from google.adk.agents.run_config import RunConfig, StreamingMode
-from google.adk.apps.app import App
 from google.adk.cli import agent_graph
 from google.adk.cli.adk_web_server import (
     CreateSessionRequest,
@@ -43,7 +42,6 @@ from google.adk.cli.adk_web_server import (
 )
 from google.adk.events.event import Event
 from google.adk.plugins.base_plugin import BasePlugin
-from google.adk.runners import Runner
 from google.adk.utils.context_utils import Aclosing
 from google.genai import types
 from opentelemetry import trace
@@ -52,7 +50,73 @@ from opentelemetry.sdk.trace import export as export_lib
 from pydantic import ValidationError
 from starlette.types import Lifespan
 
+from opensage.memory.file_based.short_term import build_root_session_state
+from opensage.orchestration.types import AgentInstanceState
+
 logger = logging.getLogger("opensage." + __name__)
+
+
+class UpdateSessionEventRequest(pydantic.BaseModel):
+    """Request to update one editable content part in a session event."""
+
+    model_config = pydantic.ConfigDict(
+        alias_generator=pydantic.alias_generators.to_camel,
+        populate_by_name=True,
+    )
+
+    part_index: Optional[int] = None
+    text: Optional[str] = None
+    function_call: Optional[types.FunctionCall] = None
+    function_response: Optional[types.FunctionResponse] = None
+
+
+def _replace_event_part(event: Event, req: UpdateSessionEventRequest) -> Event:
+    """Return a copy of an event with one editable part replaced."""
+    if not event.content or not event.content.parts:
+        raise ValueError("Only events with content parts can be edited.")
+
+    updated_event = event.model_copy(deep=True)
+    parts = updated_event.content.parts
+
+    if req.text is not None:
+        if req.part_index is None:
+            target_index = next(
+                (
+                    index
+                    for index, part in enumerate(parts)
+                    if part.text is not None and not part.thought
+                ),
+                None,
+            )
+        else:
+            target_index = req.part_index
+
+        if target_index is None or not (0 <= target_index < len(parts)):
+            raise ValueError("The requested text part does not exist.")
+        if parts[target_index].text is None or parts[target_index].thought:
+            raise ValueError("Only non-thought text parts can be edited.")
+        parts[target_index].text = req.text
+        return updated_event
+
+    if req.function_call is not None:
+        if req.part_index is None or not (0 <= req.part_index < len(parts)):
+            raise ValueError("A valid part_index is required for tool call edits.")
+        if parts[req.part_index].function_call is None:
+            raise ValueError("The requested content part is not a tool call.")
+        parts[req.part_index].function_call = req.function_call
+        return updated_event
+
+    if req.function_response is not None:
+        if req.part_index is None or not (0 <= req.part_index < len(parts)):
+            raise ValueError("A valid part_index is required for tool response edits.")
+        if parts[req.part_index].function_response is None:
+            raise ValueError("The requested content part is not a tool response.")
+        parts[req.part_index].function_response = req.function_response
+        return updated_event
+
+    raise ValueError(
+        "One of text, function_call, or function_response must be provided."
+    )
 
 
 class _InMemoryExporter(export_lib.SpanExporter):
@@ -111,8 +175,8 @@ class OpenSageWebServer:
         eval_set_results_manager=None,
         plugins: Optional[list[BasePlugin]] = None,
         url_prefix: Optional[str] = None,
+        review_instances_root: Optional[Path] = None,
     ):
-        # Use the app_name provided by CLI (parent folder of --agent) to match ADK's expectation.
         self.app_name = app_name
         self.root_agent = root_agent
         self.fixed_session_id = fixed_session_id
@@ -124,22 +188,70 @@ class OpenSageWebServer:
         self.eval_set_results_manager = eval_set_results_manager
         self.plugins = plugins or []
         self.url_prefix = url_prefix
-        self._runner: Optional[Runner] = None
+        self.review_instances_root = review_instances_root
 
-    async def get_runner_async(self) -> Runner:
-        if self._runner:
-            return self._runner
-        agentic_app = App(
-            name=self.app_name, root_agent=self.root_agent, plugins=self.plugins
+    def _build_root_session_state(
+        self, base_state: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
+        """Build canonical state for the fixed root session."""
+        return build_root_session_state(
+            opensage_session_id=self.fixed_session_id,
+            session_id=self.fixed_session_id,
+            agent_name=getattr(self.root_agent, "name", "agent"),
+            base_state=base_state,
         )
-        self._runner = Runner(
-            app=agentic_app,
-            artifact_service=self.artifact_service,
-            session_service=self.session_service,
-            memory_service=self.memory_service,
-            credential_service=self.credential_service,
+
+    def _get_agent_manager(self):
+        """Return the AgentManager if available, else None."""
+        return getattr(
+            getattr(self.session_service, "opensage_session", None),
+            "agent_manager",
+            None,
         )
-        return self._runner
+
+    def _budget_state(self) -> dict[str, Any] | None:
+        opensage_session = getattr(self.session_service, "opensage_session", None)
+        budget = getattr(opensage_session, "budget", None)
+        if budget is None:
+            return None
+        return budget.to_dict()
+
+    def _resolve_agent_name(self, session_id: str) -> str:
+        manager = self._get_agent_manager()
+        if manager is None:
+            return ""
+        inst = manager.get_instance(session_id)
+        return inst.agent_name if inst else ""
+
+    def _resolve_runtime_status(self, session_id: str) -> str | None:
+        """Query AgentManager for the live status of a subagent instance.
+
+        Returns the state value string, or None when manager is unavailable.
+        """
+        manager = self._get_agent_manager()
+        if manager is None:
+            return None
+        inst = manager.get_instance(session_id)
+        if inst is None:
+            return "sleeping"
+        return inst.state.value
+
+    def _get_root_instance(self):
+        """Return the root AgentInstance if available, else None."""
+        manager = self._get_agent_manager()
+        if manager is None:
+            return None
+        return manager.get_instance(self.fixed_session_id)
+
+    def _scan_review_instance_tree(self) -> dict[str, Any] | None:
+        if self.review_instances_root is None:
+            return None
+        from opensage.orchestration.persistence import scan_instance_tree
+
+        return scan_instance_tree(
+            self.review_instances_root,
+            root_session_id=self.fixed_session_id,
+        )
 
     def get_fast_api_app(
         self,
@@ -194,24 +306,6 @@ class OpenSageWebServer:
             )
 
         app = FastAPI(lifespan=lifespan)
-        active_turn_task_by_session: dict[str, asyncio.Task] = {}
-
-        def _register_active_turn(session_id: str, task: asyncio.Task) -> None:
-            # active = active_turn_task_by_session.get(session_id)
-            # if active and not active.done():
-            #     raise HTTPException(
-            #         status_code=409,
-            #         detail=(
-            #             "A turn is already running for this session. Stop it first."
-            #         ),
-            #     )
-
-            active_turn_task_by_session[session_id] = task
-
-        def _clear_active_turn(session_id: str, task: asyncio.Task) -> None:
-            active = active_turn_task_by_session.get(session_id)
-            if active is task:
-                active_turn_task_by_session.pop(session_id, None)
 
         if allow_origins:
             app.add_middleware(
@@ -243,24 +337,78 @@ class OpenSageWebServer:
             session_id: str = Query(default=None),
         ) -> dict[str, Any]:
             sid = session_id or self.fixed_session_id
-            active = active_turn_task_by_session.get(sid)
-            running = bool(active and not active.done())
+            real_id = sid[len("subagent-") :] if sid.startswith("subagent-") else sid
+            running = self._resolve_runtime_status(real_id) == "running"
             return {"running": running, "session_id": sid}
+
+        @app.get("/control/budget")
+        async def get_budget_state() -> dict[str, Any]:
+            return self._budget_state() or {}
 
         @app.post("/control/stop_turn")
         async def stop_current_turn(
             session_id: str = Query(default=None),
         ) -> dict[str, Any]:
             sid = session_id or self.fixed_session_id
-            active = active_turn_task_by_session.get(sid)
-            if not active or active.done():
+            manager = self._get_agent_manager()
+            inst = manager.get_instance(sid) if manager else None
+            if not inst or not inst._task or inst._task.done():
                 return {"stopped": False, "running": False, "session_id": sid}
-            active.cancel("Stopped from Dev UI")
+            inst._task.cancel("Stopped from Dev UI")
             logger.warning("Requested stop for active turn: session_id=%s", sid)
             return {"stopped": True, "running": True, "session_id": sid}
 
+        @app.get("/events/subscribe")
+        async def subscribe_events(
+            session_id: str = Query(default=None),
+            after_index: int = Query(default=0),
+        ) -> StreamingResponse:
+            """SSE endpoint: polls session events for any agent (root or subagent).
+
+            Works regardless of who triggered the invocation (web server or
+            dispatcher). Terminates when the agent is SLEEPING with no pending
+            inbox messages.
+            """
+            sid = session_id or self.fixed_session_id
+            real_id = sid[len("subagent-") :] if sid.startswith("subagent-") else sid
+
+            async def _poll_generator():
+                total_sent = after_index
+                while True:
+                    session = await self.session_service.get_session(
+                        app_name=self.app_name,
+                        user_id="user",
+                        session_id=real_id,
+                    )
+                    events = (session.events if session else None) or []
+                    new_events = events[total_sent:]
+                    for evt in new_events:
+                        yield (
+                            "data: "
+                            + evt.model_dump_json(exclude_none=True, by_alias=True)
+                            + "\n\n"
+                        )
+                        total_sent += 1
+
+                    if self._resolve_runtime_status(real_id) != "running":
+                        manager = self._get_agent_manager()
+                        inst = manager.get_instance(real_id) if manager else None
+                        has_pending = await inst.inbox.has_pending() if inst else False
+                        if not has_pending:
+                            yield 'data: {"done": true}\n\n'
+                            break
+
+                    if not new_events:
+                        yield ": keepalive\n\n"
+
+                    await asyncio.sleep(0.1)
+
+            return StreamingResponse(_poll_generator(), media_type="text/event-stream")
+
         @app.get("/debug/trace/session/{session_id}")
         async def get_session_trace(session_id: str) -> Any:
+            if session_id.startswith("subagent-"):
+                session_id = session_id[len("subagent-") :]
             spans = memory_exporter.get_finished_spans(session_id)
             if not spans:
                 return []
@@ -291,11 +439,31 @@ class OpenSageWebServer:
         )
         async def get_session(app_name: str, user_id: str, session_id: str):
             if app_name != self.app_name:
+                logger.warning(
+                    "get_session 404: app_name mismatch: req=%r server=%r",
+                    app_name,
+                    self.app_name,
+                )
                 raise HTTPException(status_code=404, detail="App not found")
+            # For sub-agent sessions, look up by the real session id.
+            if session_id.startswith("subagent-"):
+                session_id = session_id[len("subagent-") :]
             session = await self.session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:
+                known = list(
+                    self.session_service.sessions.get(app_name, {})
+                    .get(user_id, {})
+                    .keys()
+                )
+                logger.warning(
+                    "get_session 404: session not found: app=%r user=%r sid=%r known_sids=%r",
+                    app_name,
+                    user_id,
+                    session_id,
+                    known,
+                )
                 raise HTTPException(status_code=404, detail="Session not found")
             return session
 
@@ -304,7 +472,9 @@ class OpenSageWebServer:
             response_model_exclude_none=True,
         )
         async def create_session(
-            app_name: str, user_id: str, req: Optional[CreateSessionRequest] = None
+            app_name: str,
+            user_id: str,
+            req: Optional[CreateSessionRequest] = None,
         ):
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
@@ -316,7 +486,7 @@ class OpenSageWebServer:
                 session = await self.session_service.create_session(
                     app_name=app_name,
                     user_id=user_id,
-                    state=(req.state if req else None),
+                    state=self._build_root_session_state(req.state if req else None),
                     session_id=self.fixed_session_id,
                 )
             if req and req.events:
@@ -333,112 +503,80 @@ class OpenSageWebServer:
         async def list_sessions(app_name: str, user_id: str):
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
-            # Only expose the fixed session for this app/user.
-            session = await self.session_service.get_session(
-                app_name=app_name, user_id=user_id, session_id=self.fixed_session_id
+            # Return all sessions including loaded sub-agent sessions
+            # Angular uses queryParams.session to select the right one
+            result = await self.session_service.list_sessions(
+                app_name=app_name, user_id=user_id
             )
-            if not session:
-                # Lazily ensure it exists
+            sessions = result.sessions if result and result.sessions else []
+            if not any(s.id == self.fixed_session_id for s in sessions):
                 session = await self.session_service.create_session(
                     app_name=app_name,
                     user_id=user_id,
-                    state=None,
+                    state=self._build_root_session_state(),
                     session_id=self.fixed_session_id,
                 )
-            return [session]
+                sessions.append(session)
+            return sessions
 
-        @app.post("/run", response_model_exclude_none=True)
-        async def run_agent(req: RunAgentRequest) -> list[Event]:
-            app_name = req.app_name
-            user_id = req.user_id
-            session_id = req.session_id
-            new_message = req.new_message
-            state_delta = req.state_delta
-
+        @app.patch(
+            "/apps/{app_name}/users/{user_id}/sessions/{session_id}/events/{event_id}",
+            response_model_exclude_none=True,
+        )
+        async def update_session_event(
+            app_name: str,
+            user_id: str,
+            session_id: str,
+            event_id: str,
+            req: UpdateSessionEventRequest,
+        ) -> Event:
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
+
             session = await self.session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:
                 raise HTTPException(status_code=404, detail="Session not found")
-            runner = await self.get_runner_async()
-            current_task = asyncio.current_task()
-            if current_task is None:
-                raise HTTPException(status_code=500, detail="No active task context")
-            _register_active_turn(session_id, current_task)
+
+            existing_event = next(
+                (event for event in session.events if event.id == event_id), None
+            )
+            if not existing_event:
+                raise HTTPException(status_code=404, detail="Event not found")
+
             try:
-                async with Aclosing(
-                    runner.run_async(
-                        user_id=user_id,
-                        session_id=session_id,
-                        new_message=new_message,
-                        state_delta=state_delta,
-                    )
-                ) as agen:
-                    return [event async for event in agen]
-            except asyncio.CancelledError as cancelled:
-                raise HTTPException(
-                    status_code=409, detail=f"Turn stopped: {cancelled}"
-                ) from cancelled
-            finally:
-                _clear_active_turn(session_id, current_task)
+                updated_event = _replace_event_part(existing_event, req)
+                return await self.session_service.update_event(
+                    session=session, event=updated_event
+                )
+            except NotImplementedError as exc:
+                raise HTTPException(status_code=501, detail=str(exc)) from exc
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        @app.post("/run_sse")
-        async def run_agent_sse(req: RunAgentRequest) -> StreamingResponse:
-            app_name = req.app_name
-            user_id = req.user_id
-            session_id = req.session_id
-            new_message = req.new_message
-            streaming = bool(req.streaming)
-            state_delta = req.state_delta
-            invocation_id = req.invocation_id
-
-            if app_name != self.app_name:
+        @app.post("/run")
+        async def run_agent(req: RunAgentRequest):
+            if req.app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
-            session = await self.session_service.get_session(
-                app_name=app_name, user_id=user_id, session_id=session_id
+            manager = self._get_agent_manager()
+            inst = manager.get_instance(req.session_id)
+            if inst and inst.state != AgentInstanceState.SLEEPING:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Instance {req.session_id} is busy ({inst.state.value})",
+                )
+            msg = req.new_message
+            if msg is not None and hasattr(msg, "parts") and msg.parts:
+                text = "".join(p.text or "" for p in msg.parts)
+            else:
+                text = str(msg) if msg else ""
+            await manager.send_message(
+                from_sid="__user__",
+                to_sid=req.session_id,
+                content=text,
             )
-            if not session:
-                raise HTTPException(status_code=404, detail="Session not found")
-
-            async def event_generator():
-                current_task = asyncio.current_task()
-                if current_task is None:
-                    yield 'data: {"error": "No active task context"}\n\n'
-                    return
-                try:
-                    _register_active_turn(session_id, current_task)
-                    mode = StreamingMode.SSE if streaming else StreamingMode.NONE
-                    runner = await self.get_runner_async()
-                    async with Aclosing(
-                        runner.run_async(
-                            user_id=user_id,
-                            session_id=session_id,
-                            new_message=new_message,
-                            state_delta=state_delta,
-                            run_config=RunConfig(streaming_mode=mode),
-                            invocation_id=invocation_id,
-                        )
-                    ) as agen:
-                        async for event in agen:
-                            yield (
-                                "data: "
-                                + event.model_dump_json(
-                                    exclude_none=True, by_alias=True
-                                )
-                                + "\n\n"
-                            )
-                except asyncio.CancelledError:
-                    yield 'data: {"stopped": true, "message": "Turn stopped by UI"}\n\n'
-                    return
-                except Exception as e:
-                    logger.exception("Error in SSE generator: %s", e)
-                    yield f'data: {{"error": "{str(e)}"}}\n\n'
-                finally:
-                    _clear_active_turn(session_id, current_task)
-
-            return StreamingResponse(event_generator(), media_type="text/event-stream")
+            return {"ok": True}
 
         @app.websocket("/run_live")
         async def run_agent_live(
@@ -450,6 +588,8 @@ class OpenSageWebServer:
                 default=["TEXT", "AUDIO"]
             ),
         ):
+            from opensage.orchestration.types import AgentInstanceState
+
             await websocket.accept()
             if app_name != self.app_name:
                 await websocket.close(code=1002, reason="App not found")
@@ -461,10 +601,12 @@ class OpenSageWebServer:
                 await websocket.close(code=1002, reason="Session not found")
                 return
 
+            manager = self._get_agent_manager()
+            inst = manager.get_instance(session_id)
             live_request_queue = LiveRequestQueue()
 
             async def forward_events():
-                runner = await self.get_runner_async()
+                runner = inst.runner
                 async with Aclosing(
                     runner.run_live(
                         session=session, live_request_queue=live_request_queue
@@ -481,17 +623,17 @@ class OpenSageWebServer:
                         data = await websocket.receive_text()
                         live_request_queue.send(LiveRequest.model_validate_json(data))
                 except ValidationError as ve:
-                    logger.error("Validation error in live process_messages: %s", ve)
+                    logger.exception(
+                        "Validation error in live process_messages: %s", ve
+                    )
 
             tasks = [
                 asyncio.create_task(forward_events()),
                 asyncio.create_task(process_messages()),
             ]
-            current_task = asyncio.current_task()
-            if current_task is None:
-                await websocket.close(code=1011, reason="No active task context")
-                return
-            _register_active_turn(session_id, current_task)
+            inst.state = AgentInstanceState.RUNNING
+            inst._done_event.clear()
+            inst._task = asyncio.current_task()
             try:
                 done, pending = await asyncio.wait(
                     tasks, return_when=asyncio.FIRST_EXCEPTION
@@ -506,7 +648,9 @@ class OpenSageWebServer:
                 logger.exception("Live error: %s", e)
                 await websocket.close(code=1011, reason=str(e)[:123])
             finally:
-                _clear_active_turn(session_id, current_task)
+                inst.state = AgentInstanceState.SLEEPING
+                inst._done_event.set()
+                inst._task = None
                 for t in tasks:
                     t.cancel()
 
@@ -622,8 +766,15 @@ class OpenSageWebServer:
 
             mimetypes.add_type("application/javascript", ".js", True)
             mimetypes.add_type("text/javascript", ".js", True)
-            redirect_dev_ui_url = (
+            dev_ui_base_url = (
                 self.url_prefix + "/dev-ui/" if self.url_prefix else "/dev-ui/"
+            )
+            redirect_dev_ui_url = f"{dev_ui_base_url}?" + urlencode(
+                {
+                    "app": self.app_name,
+                    "session": self.fixed_session_id,
+                    "userId": "user",
+                }
             )
 
             @app.get("/dev-ui/config")
@@ -632,6 +783,223 @@ class OpenSageWebServer:
                     "logo_text": "OpenSage",
                     # Served from vendored static assets (offline replaced).
                     "logo_image_url": "assets/opensage.svg",
+                }
+
+            # --- Sub-agent visualization endpoints ---
+
+            @app.get("/control/subagents")
+            async def list_subagents():
+                tree = self._scan_review_instance_tree()
+                if tree is None:
+                    from opensage.memory.file_based.short_term.session_files import (
+                        scan_host_instance_tree,
+                    )
+
+                    tree = scan_host_instance_tree(self.fixed_session_id)
+                root = tree.get("root")
+                root_name = root["name"] if root else ""
+                subagents = [
+                    a for a in tree.get("agents_flat", []) if a["name"] != root_name
+                ]
+                manager = self._get_agent_manager()
+                for agent in subagents:
+                    runtime = self._resolve_runtime_status(agent["session_id"])
+                    if runtime is not None:
+                        agent["status"] = runtime
+                    if manager:
+                        inst = manager.get_instance(agent["session_id"])
+                        if inst:
+                            instr = getattr(inst.agent, "instruction", "")
+                            if not callable(instr):
+                                agent["query"] = (instr or "")[:80].strip()
+                            agent_model = getattr(inst.agent, "model", None)
+                            if agent_model:
+                                agent["model"] = getattr(agent_model, "model", "")
+                return {"agents": subagents, "root": root_name}
+
+            _last_good_topology: dict = {"nodes": [], "edges": []}
+
+            @app.get("/control/subagents/topology")
+            async def get_subagent_topology():
+                nonlocal _last_good_topology
+                try:
+                    result = _build_topology()
+                    if result.get("nodes"):
+                        _last_good_topology = result
+                    return result
+                except Exception:
+                    logger.exception("topology endpoint failed")
+                    return _last_good_topology
+
+            def _build_topology():
+                manager = self._get_agent_manager()
+
+                if manager:
+                    instances = manager.list_instances()
+                else:
+                    instances = None
+
+                root_sid = self.fixed_session_id
+
+                if instances:
+                    by_sid = {inst.session_id: inst for inst in instances}
+                    root_inst = by_sid.get(root_sid)
+                    if not root_inst:
+                        return {"nodes": [], "edges": []}
+
+                    nodes: list[dict] = []
+                    edges: list[dict] = []
+                    for inst in instances:
+                        is_root = inst.session_id == root_sid
+                        instr = getattr(inst.agent, "instruction", "")
+                        preview_text = ""
+                        if not callable(instr):
+                            preview_text = (instr or "")[:80].strip()
+
+                        label = inst.agent_name
+                        label += f"\n[{inst.session_id}]"
+                        if preview_text and not is_root:
+                            short = preview_text[:40].replace("\n", " ")
+                            if len(preview_text) > 40:
+                                short += "..."
+                            label += f"\n({short})"
+
+                        status = "active" if is_root else inst.state.value
+                        model_name = ""
+                        agent_model = getattr(inst.agent, "model", None)
+                        if agent_model:
+                            model_name = getattr(agent_model, "model", "")
+                        nodes.append(
+                            {
+                                "id": inst.session_id,
+                                "label": label,
+                                "name": inst.agent_name,
+                                "session_id": inst.session_id,
+                                "query": preview_text,
+                                "status": status,
+                                "type": "root" if is_root else "subagent",
+                                "model": model_name,
+                            }
+                        )
+                        if inst.parent_session_id:
+                            edges.append(
+                                {"from": inst.parent_session_id, "to": inst.session_id}
+                            )
+                    return {"nodes": nodes, "edges": edges}
+
+                tree = self._scan_review_instance_tree()
+                if tree is None:
+                    from opensage.memory.file_based.short_term.session_files import (
+                        scan_host_instance_tree,
+                    )
+
+                    tree = scan_host_instance_tree(root_sid)
+                agents_flat = tree.get("agents_flat", [])
+                if not agents_flat:
+                    return {"nodes": [], "edges": []}
+
+                root_name = tree["root"]["name"] if tree.get("root") else ""
+                nodes = []
+                edges = []
+                for a in agents_flat:
+                    is_root = a["name"] == root_name and not a.get("parent_name")
+                    label = a["name"] + f"\n[{a['session_id']}]"
+                    query = a.get("query", "")
+                    if query and not is_root:
+                        short = query[:40].replace("\n", " ")
+                        if len(query) > 40:
+                            short += "..."
+                        label += f"\n({short})"
+
+                    nodes.append(
+                        {
+                            "id": a["session_id"],
+                            "label": label,
+                            "name": a["name"],
+                            "session_id": a["session_id"],
+                            "query": query,
+                            "status": a.get("status", "completed"),
+                            "type": "root" if is_root else "subagent",
+                        }
+                    )
+                    parent_sid = a.get("parent_session_id")
+                    if not parent_sid:
+                        parent_name = a.get("parent_name")
+                        if parent_name:
+                            parent_sid = next(
+                                (
+                                    x["session_id"]
+                                    for x in agents_flat
+                                    if x.get("name") == parent_name
+                                ),
+                                None,
+                            )
+                    if parent_sid:
+                        edges.append({"from": parent_sid, "to": a["session_id"]})
+
+                return {"nodes": nodes, "edges": edges}
+
+            @app.get("/control/subagents/{subagent_session_id}/events")
+            async def get_subagent_events(
+                subagent_session_id: str,
+                after_index: int = Query(default=0),
+            ):
+                session = await self.session_service.get_session(
+                    app_name=self.app_name,
+                    user_id="user",
+                    session_id=subagent_session_id,
+                )
+                events = (session.events if session else None) or []
+                agent_name = self._resolve_agent_name(subagent_session_id)
+                filtered = []
+                for i, event in enumerate(events):
+                    if i < after_index:
+                        continue
+                    try:
+                        filtered.append(
+                            {
+                                "index": i,
+                                "id": event.id,
+                                "author": event.author,
+                                "timestamp": event.timestamp,
+                                "content": event.model_dump(
+                                    exclude_none=True, by_alias=True
+                                ),
+                            }
+                        )
+                    except Exception:
+                        continue
+                return {
+                    "agent_name": agent_name,
+                    "subagent_session_id": subagent_session_id,
+                    "events": filtered,
+                    "total": len(events),
+                }
+
+            @app.post("/control/subagents/{subagent_session_id}/load_session")
+            async def load_subagent_session(subagent_session_id: str):
+                """Verify a sub-agent session exists in memory and return its metadata.
+
+                Returns session_id with ``subagent-`` prefix so downstream
+                endpoints (turn_state, subscribe, get_session) can distinguish
+                subagent requests from regular sessions.
+                """
+                session = await self.session_service.get_session(
+                    app_name=self.app_name,
+                    user_id="user",
+                    session_id=subagent_session_id,
+                )
+                if not session:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Session '{subagent_session_id}' not found",
+                    )
+                prefixed_id = f"subagent-{subagent_session_id}"
+                return {
+                    "session_id": prefixed_id,
+                    "agent_name": self._resolve_agent_name(subagent_session_id),
+                    "subagent_session_id": subagent_session_id,
+                    "event_count": len(session.events or []),
                 }
 
             @app.post("/control/upload_to_sandbox")
@@ -657,11 +1025,13 @@ class OpenSageWebServer:
                         ),
                     )
 
+                from opensage.sandbox.sandbox_paths import get_shared as _get_shared
+
                 filename = Path(file.filename).name
                 resolved_target_path = (
                     target_path.strip()
                     if target_path and target_path.strip()
-                    else f"/shared/uploads/{filename}"
+                    else f"{_get_shared()}/uploads/{filename}"
                 )
                 if resolved_target_path.endswith("/"):
                     resolved_target_path = f"{resolved_target_path}{filename}"
@@ -682,7 +1052,7 @@ class OpenSageWebServer:
                             temp_file.write(chunk)
                         temp_path = temp_file.name
 
-                    _, mkdir_exit_code = sandbox.run_command_in_container(
+                    _, mkdir_exit_code = await sandbox.arun_command_in_container(
                         ["mkdir", "-p", parent_dir]
                     )
                     if mkdir_exit_code != 0:
@@ -691,7 +1061,9 @@ class OpenSageWebServer:
                             detail=f"Failed to create sandbox directory: {parent_dir}",
                         )
 
-                    sandbox.copy_file_to_container(temp_path, resolved_target_path)
+                    await sandbox.acopy_file_to_container(
+                        temp_path, resolved_target_path
+                    )
                 except HTTPException:
                     raise
                 except Exception as exc:
@@ -716,133 +1088,6 @@ class OpenSageWebServer:
                     "filename": filename,
                 }
 
-            @app.get("/dev-ui/opensage-stop-turn.js")
-            async def get_stop_turn_js():
-                js = """
-(() => {
-  const style = document.createElement('style');
-  style.textContent = `
-    #opensage-stop-btn {
-      position: fixed; right: 16px; bottom: 16px; z-index: 99999;
-      border: none; border-radius: 8px; padding: 10px 14px;
-      color: #fff; font-weight: 600; cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-    }
-    #opensage-stop-btn.running { background: #d93025; }
-    #opensage-stop-btn.idle { background: #9aa0a6; cursor: not-allowed; }
-  `;
-  document.head.appendChild(style);
-
-  const btn = document.createElement('button');
-  btn.id = 'opensage-stop-btn';
-  btn.className = 'idle';
-  btn.textContent = 'Stop Turn';
-  btn.disabled = true;
-  document.body.appendChild(btn);
-
-  async function refresh() {
-    try {
-      const res = await fetch('/control/turn_state', { cache: 'no-store' });
-      const data = await res.json();
-      const running = !!data.running;
-      btn.className = running ? 'running' : 'idle';
-      btn.disabled = !running;
-    } catch (_) {}
-  }
-
-  btn.addEventListener('click', async () => {
-    try {
-      await fetch('/control/stop_turn', { method: 'POST' });
-      await refresh();
-    } catch (_) {}
-  });
-
-  refresh();
-  setInterval(refresh, 3000);
-})();
-                """.strip()
-                return PlainTextResponse(js, media_type="application/javascript")
-
-            @app.get("/dev-ui/opensage-upload-sandbox.js")
-            async def get_upload_sandbox_js():
-                js = """
-(() => {
-  const style = document.createElement('style');
-  style.textContent = `
-    #opensage-upload-btn {
-      position: fixed; right: 16px; bottom: 68px; z-index: 99999;
-      border: none; border-radius: 8px; padding: 10px 14px;
-      color: #fff; font-weight: 600; cursor: pointer;
-      background: #1a73e8; box-shadow: 0 2px 8px rgba(0,0,0,.25);
-    }
-    #opensage-upload-btn:disabled {
-      background: #9aa0a6; cursor: progress;
-    }
-  `;
-  document.head.appendChild(style);
-
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.style.display = 'none';
-  document.body.appendChild(input);
-
-  const btn = document.createElement('button');
-  btn.id = 'opensage-upload-btn';
-  btn.textContent = 'Upload to Sandbox';
-  btn.title = 'Upload a local file into the current sandbox';
-  document.body.appendChild(btn);
-
-  async function uploadFile(file) {
-    const sandboxType = window.prompt('Upload to which sandbox?', 'main');
-    if (sandboxType === null) return;
-
-    const defaultPath = `/shared/uploads/${file.name}`;
-    const targetPath = window.prompt(
-      'Upload to which sandbox path?',
-      defaultPath
-    );
-    if (targetPath === null) return;
-
-    btn.disabled = true;
-    const originalText = btn.textContent;
-    btn.textContent = 'Uploading...';
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('sandbox_type', sandboxType.trim() || 'main');
-      formData.append('target_path', targetPath.trim() || defaultPath);
-
-      const response = await fetch('/control/upload_to_sandbox', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || 'Upload failed');
-      }
-      alert(`Uploaded to ${data.target_path}`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      alert(`Upload failed: ${message}`);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = originalText;
-      input.value = '';
-    }
-  }
-
-  btn.addEventListener('click', () => input.click());
-  input.addEventListener('change', () => {
-    const [file] = input.files || [];
-    if (file) {
-      uploadFile(file);
-    }
-  });
-})();
-                """.strip()
-                return PlainTextResponse(js, media_type="application/javascript")
-
             @app.get("/")
             async def redirect_root_to_dev_ui():
                 return RedirectResponse(redirect_dev_ui_url)
@@ -850,30 +1095,6 @@ class OpenSageWebServer:
             @app.get("/dev-ui")
             async def redirect_dev_ui_add_slash():
                 return RedirectResponse(redirect_dev_ui_url)
-
-            @app.get("/dev-ui/")
-            async def dev_ui_index_with_pause_button():
-                index_html = (web_assets_dir / "index.html").read_text(encoding="utf-8")
-                tooltip_style_tag = """
-<style>
-  .mat-mdc-tooltip,
-  .mdc-tooltip__surface {
-    max-width: 420px !important;
-  }
-
-  .mdc-tooltip__surface {
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-  }
-</style>
-                """.strip()
-                script_tag = (
-                    '<script src="./opensage-stop-turn.js" type="module"></script>'
-                    '<script src="./opensage-upload-sandbox.js" type="module"></script>'
-                )
-                injected = index_html.replace("</head>", f"{tooltip_style_tag}</head>")
-                injected = injected.replace("</body>", f"{script_tag}</body>")
-                return HTMLResponse(content=injected)
 
             app.mount(
                 "/dev-ui/",

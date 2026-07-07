@@ -44,7 +44,7 @@ async def test_get_caller_basic(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test get-caller for a known function
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-caller/scripts/get_caller.py "file_fsmagic"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -75,7 +75,7 @@ async def test_get_caller_with_file_path(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test get-caller with file path
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-caller/scripts/get_caller.py "file_fsmagic" --file-path "file/src/fsmagic.c"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -104,7 +104,7 @@ async def test_get_caller_nonexistent_function(opensage_session: OpenSageSession
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test with non-existent function
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-caller/scripts/get_caller.py "nonexistent_function_xyz123"',
         tool_context=mock_context,
         sandbox_name="main",

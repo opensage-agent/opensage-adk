@@ -12,18 +12,11 @@ from __future__ import annotations
 
 import atexit
 import logging
-import os
-import threading
-from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import Dict, Optional
 
 from ..config.config_dataclass import OpenSageConfig
-from ..utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from .message_board import MessageBoardManager
 
 # TODO: clearly define the session in opensage
 
@@ -36,19 +29,29 @@ class OpenSageSession:
     - Configuration management (TOML loading, env overrides)
     - Agent lifecycle management (creation, persistence, cleanup)
     - Sandbox management (Docker containers, resource isolation)
-    - Agent ensemble management (thread-safe tools, agent discovery)
+    - Agent ensemble management (agent discovery)
 
     This replaces the previous singleton-based architecture with a clear
     session-bound resource management model.
     """
 
-    def __init__(self, opensage_session_id: str, config_path: Optional[str] = None):
+    def __init__(
+        self,
+        opensage_session_id: str,
+        config_path: Optional[str] = None,
+        agent_dir: Optional[str] = None,
+    ):
         """Initialize OpenSageSession for a specific session.
 
         Args:
             opensage_session_id (str): Unique identifier for this session
-            config_path (Optional[str]): Optional path to TOML configuration file"""
+            config_path (Optional[str]): Optional path to TOML configuration file
+            agent_dir (Optional[str]): Directory the agent was loaded from. Used
+                to resolve ``config.model.models_python_file`` when it is a
+                relative path. Required only if the config references a relative
+                python file path."""
         self.opensage_session_id = opensage_session_id
+        self.agent_dir = agent_dir
 
         # Initialize session-specific configuration
         if config_path:
@@ -56,62 +59,72 @@ class OpenSageSession:
         else:
             self.config = OpenSageConfig.create_default()
 
-        # Initialize memory settings from config (lazy import to avoid circular dependency)
-        if self.config.memory:
-            from ..memory.config import configure_memory_from_config
+        # Apply sandbox path configuration (mem_root, shared, etc.)
+        from opensage.sandbox.sandbox_paths import configure_from_config
 
-            configure_memory_from_config(self.config.memory)
+        configure_from_config(self.config)
 
-        # Initialize all session-specific managers
-        # Pass self (session) instead of individual fields to allow dynamic property access
-        from .opensage_dynamic_agent_manager import DynamicAgentManager
-        from .opensage_ensemble_manager import OpenSageEnsembleManager
+        # Shared runtime LLM budget for this OpenSage session.
+        from opensage.llm.budget import BudgetManager
+
+        model_cfg = getattr(self.config, "model", None)
+        self.budget = BudgetManager(
+            configured_budget=getattr(model_cfg, "budget", 0.0) if model_cfg else 0.0,
+            model_prices=getattr(model_cfg, "prices", None) if model_cfg else None,
+        )
+
+        # Initialize session-specific managers
         from .opensage_neo4j_client_manager import OpenSageNeo4jClientManager
         from .opensage_sandbox_manager import OpenSageSandboxManager
 
-        self.agents = DynamicAgentManager(self)
         self.sandboxes = OpenSageSandboxManager(self)
+        # Neo4j client manager is retained for code-property-graph uses
+        # (joern / codeql sandboxes). It is NOT used for conversation memory.
         self.neo4j = OpenSageNeo4jClientManager(self)
-        self.ensemble = OpenSageEnsembleManager(self)
 
-        self._message_boards_by_id: Dict[str, "MessageBoardManager"] = {}
+        # ----- ADK services owned by this environment -----
+        from google.adk.artifacts.in_memory_artifact_service import (
+            InMemoryArtifactService,
+        )
+        from google.adk.auth.credential_service.in_memory_credential_service import (
+            InMemoryCredentialService,
+        )
+        from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+
+        from ..features.opensage_in_memory_session_service import (
+            OpenSageInMemorySessionService,
+        )
+
+        self.session_service = OpenSageInMemorySessionService()
+        self.session_service.opensage_session = self  # back-reference
+        self.artifact_service = InMemoryArtifactService()
+        self.memory_service = InMemoryMemoryService()
+        self.credential_service = InMemoryCredentialService()
+
+        # ----- LlmRegistry (eager-loaded model pool for LLM-driven subagents) -----
+        from ..llm import LlmRegistry
+
+        self.llms = LlmRegistry.from_config(
+            self.config,
+            agent_dir=agent_dir,
+            budget_manager=self.budget,
+        )
+
+        # ----- AgentManager (new orchestration layer) -----
+        from ..orchestration.manager import AgentManager
+
+        self.agent_manager = AgentManager(self)
+
+        # Idempotency flag: cleanup() may be invoked from multiple layers
+        # (explicit user code finally + atexit fallback). The 2nd+ call is a
+        # no-op.
+        self._cleaned_up: bool = False
+
+        # root_session_id is set by the CLI / evaluation entrypoint after
+        # spawning the root agent via agent_manager.spawn(...).
+        self.root_session_id: Optional[str] = None
 
         logger.info(f"Created OpenSageSession for session: {opensage_session_id}")
-
-    def get_message_board(self, *, board_id: str | None = None):
-        """Get a message board for the current session.
-
-                Message boards are created on-demand and are intended for ensemble runs.
-
-        Raises:
-          ValueError: Raised when this operation fails."""
-        if not board_id:
-            raise ValueError("board_id is required for message boards")
-
-        existing = self._message_boards_by_id.get(board_id)
-        if existing is not None:
-            return existing
-
-        from .message_board import (
-            MessageBoardManager,  # pylint: disable=g-import-not-at-top
-        )
-
-        board = MessageBoardManager(
-            base_dir=Path("/tmp"),
-            session_id=self.opensage_session_id,
-            board_id=board_id,
-        )
-        self._message_boards_by_id[board_id] = board
-        return board
-
-    def cleanup_message_board(self, *, board_id: str) -> None:
-        """Cleanup a temporary message board by id (best-effort)."""
-        if not board_id:
-            return
-        board = self._message_boards_by_id.pop(board_id, None)
-        if board is None:
-            return
-        board.cleanup()
 
     def load_config_from_toml(self, toml_path: str) -> None:
         """
@@ -140,26 +153,42 @@ class OpenSageSession:
         Returns:
             Dict: Dictionary containing session information
         """
-        agent_stats = self.agents.get_session_statistics()
         sandbox_stats = self.sandboxes.get_session_statistics()
-        thread_safe_tools = self.ensemble.get_thread_safe_tools()
 
         return {
             "opensage_session_id": self.opensage_session_id,
             "config_status": "loaded",
-            "active_agents": agent_stats["total_agents"],
+            "active_agents": len(self.agent_manager.list_instances()),
             "active_sandboxes": sandbox_stats["total_sandboxes"],
-            "thread_safe_tools_count": len(thread_safe_tools),
+            "budget": self.budget.to_dict(),
         }
 
     def cleanup(self) -> None:
+        """Synchronous, idempotent cleanup.
+
+        Drops nothing across restarts: peer-message inboxes are not persisted
+        across processes (they get reset in ``AgentManager.start``), and ADK
+        traj.json is already written incrementally by the run patch. So
+        cleanup only needs to release sandbox resources.
+
+        Safe to call multiple times — repeated calls return immediately. This
+        lets explicit finally blocks coexist with the atexit fallback without
+        double-cleanup hazards.
         """
-        Cleanup all resources for this session.
-        """
+        if self._cleaned_up:
+            return
+        self._cleaned_up = True
+
+        try:
+            self.agent_manager.cancel_all_tasks()
+        except Exception:
+            logger.exception("agent task cancellation failed")
+
         if self.config.auto_cleanup:
-            self.sandboxes.cleanup()
-            self.agents.cleanup()
-            self.ensemble.cleanup()
+            try:
+                self.sandboxes.cleanup()
+            except Exception:
+                logger.exception("sandbox cleanup failed")
 
 
 class OpenSageSessionRegistry:
@@ -175,6 +204,7 @@ class OpenSageSessionRegistry:
 
     _sessions: Dict[str, OpenSageSession] = {}
 
+    @staticmethod
     def _cleanup_at_exit():
         """Cleanup all sessions at exit, ignoring closed stream errors."""
         try:
@@ -193,12 +223,19 @@ class OpenSageSessionRegistry:
         opensage_session_id: str,
         config_path: Optional[str] = None,
         create_if_missing: bool = True,
+        agent_dir: Optional[str] = None,
     ) -> OpenSageSession:
         """
         Get or create a session manager for the given session ID.
 
         Args:
             opensage_session_id (str): Unique session identifier
+            config_path: Optional TOML path; only used on first creation.
+            create_if_missing: If False and the session is not already in the
+                registry, return None.
+            agent_dir: Directory the agent was loaded from; passed through to
+                ``OpenSageSession`` for resolving relative ``models_python_file``.
+                Only used on first creation.
         Returns:
             OpenSageSession: OpenSageSession instance for the session
         """
@@ -206,7 +243,7 @@ class OpenSageSessionRegistry:
             if not create_if_missing:
                 return None
             cls._sessions[opensage_session_id] = OpenSageSession(
-                opensage_session_id, config_path
+                opensage_session_id, config_path, agent_dir=agent_dir
             )
             logger.info(f"Created new session in registry: {opensage_session_id}")
 
@@ -266,12 +303,16 @@ def get_opensage_session(
     opensage_session_id: str,
     config_path: Optional[str] = None,
     create_if_missing: bool = True,
+    agent_dir: Optional[str] = None,
 ) -> OpenSageSession:
     """
     Get or create an OpenSageSession for the given session ID.
     """
     return OpenSageSessionRegistry.get_opensage_session(
-        opensage_session_id, config_path, create_if_missing
+        opensage_session_id,
+        config_path,
+        create_if_missing,
+        agent_dir=agent_dir,
     )
 
 

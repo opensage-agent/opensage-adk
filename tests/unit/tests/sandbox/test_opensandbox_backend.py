@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+import sys
 import tarfile
+import types as _types
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -16,9 +18,77 @@ from opensage.config import (
     OpenSandboxConfig,
     SandboxConfig,
 )
-from opensage.sandbox.opensandbox_sandbox import OpenSandboxSandbox
 from opensage.sandbox.shared_storage import SharedStorage
 from opensage.session.opensage_sandbox_manager import OpenSageSandboxManager
+
+# ---------------------------------------------------------------------------
+# Mock the optional ``opensandbox`` package so tests run without it installed.
+# ---------------------------------------------------------------------------
+
+
+def _install_opensandbox_mock():
+    """Register a lightweight mock of the opensandbox package in sys.modules."""
+    if "opensandbox" in sys.modules and hasattr(sys.modules["opensandbox"], "__path__"):
+        return  # real package is installed — nothing to do
+
+    class PVC:
+        def __init__(self, claim_name: str = ""):
+            self.claim_name = claim_name
+
+    class Host:
+        def __init__(self, path: str = ""):
+            self.path = path
+
+    class Volume:
+        def __init__(
+            self,
+            name: str = "",
+            pvc=None,
+            host=None,
+            mount_path: str = "",
+            read_only: bool = False,
+        ):
+            self.name = name
+            self.pvc = pvc
+            self.host = host
+            self.mount_path = mount_path
+            self.read_only = read_only
+
+    mod = _types.ModuleType("opensandbox")
+    mod.__path__ = []
+    submodules = {
+        "opensandbox.config": _types.ModuleType("opensandbox.config"),
+        "opensandbox.config.connection_sync": _types.ModuleType(
+            "opensandbox.config.connection_sync"
+        ),
+        "opensandbox.sync": _types.ModuleType("opensandbox.sync"),
+        "opensandbox.sync.adapters": _types.ModuleType("opensandbox.sync.adapters"),
+        "opensandbox.sync.adapters.factory": _types.ModuleType(
+            "opensandbox.sync.adapters.factory"
+        ),
+        "opensandbox.models": _types.ModuleType("opensandbox.models"),
+        "opensandbox.models.sandboxes": _types.ModuleType(
+            "opensandbox.models.sandboxes"
+        ),
+    }
+    conn_mock = mock.MagicMock()
+    conn_mock.return_value.with_transport_if_missing.return_value = mock.MagicMock()
+    submodules["opensandbox.config.connection_sync"].ConnectionConfigSync = conn_mock
+    submodules[
+        "opensandbox.sync.adapters.factory"
+    ].AdapterFactorySync = mock.MagicMock()
+    submodules["opensandbox.models.sandboxes"].PVC = PVC
+    submodules["opensandbox.models.sandboxes"].Host = Host
+    submodules["opensandbox.models.sandboxes"].Volume = Volume
+
+    sys.modules["opensandbox"] = mod
+    for name, m in submodules.items():
+        sys.modules[name] = m
+
+
+_install_opensandbox_mock()
+
+from opensage.sandbox.opensandbox_sandbox import OpenSandboxSandbox
 
 
 def _set_backend_config(runtime_type: str = "docker") -> OpenSageConfig:
@@ -100,26 +170,6 @@ def test_parse_legacy_mounts_supports_host_path_sources():
     assert volumes[1].pvc.claim_name == "sess_tools"
     assert volumes[1].mount_path == "/bash_tools"
     assert volumes[1].read_only is True
-
-
-def test_get_work_dir_uses_pwd_command(monkeypatch):
-    _set_backend_config()
-    sandbox = OpenSandboxSandbox(
-        ContainerConfig(image="ubuntu:22.04"),
-        session_id="session-1",
-        backend_type="opensandbox",
-        sandbox_type="main",
-    )
-    called = {}
-
-    def _fake_run(command, timeout=None):
-        called["command"] = command
-        return "/workspace\n", 0
-
-    monkeypatch.setattr(sandbox, "run_command_in_container", _fake_run)
-
-    assert sandbox.get_work_dir() == "/workspace"
-    assert called["command"] == "pwd"
 
 
 def test_create_single_sandbox_calls_remote_create(monkeypatch):
@@ -425,26 +475,64 @@ def test_manager_mount_host_paths_validator():
         OpenSageSandboxManager._normalize_mount_host_path_spec("/a:/b:rwx")
 
 
-def test_manager_host_shared_mem_dir_mount_injected(monkeypatch, tmp_path: Path):
-    config = _set_backend_config(runtime_type="docker")
-    config.sandbox.sandboxes["worker"] = ContainerConfig(image="worker:latest")
-    host_mem_dir = tmp_path / "shared_mem"
-    config.sandbox.host_shared_mem_dir = str(host_mem_dir)
-    session = SimpleNamespace(opensage_session_id="session-1", config=config)
-    manager = OpenSageSandboxManager(session)
+def test_native_docker_network_adds_network(monkeypatch):
+    from opensage.sandbox.native_docker_sandbox import NativeDockerSandbox
 
-    monkeypatch.setattr(
-        "opensage.sandbox.shared_storage.SharedStorage.create_for_opensandbox",
-        lambda session_id, init_data_path, tools_top_roots, config: (
-            "scripts-vol",
-            "shared-vol",
-            "tools-vol",
-        ),
+    sandbox = object.__new__(NativeDockerSandbox)
+    sandbox.container_config_obj = ContainerConfig(
+        image="ubuntu:latest",
+        container_name="test-container",
+        network="agent_net",
     )
+    sandbox.sandbox_type = "main"
+    sandbox.opensage_session_id = "session-1"
 
-    manager.initialize_shared_volumes()
+    fake_container = SimpleNamespace(id="container-1")
+    fake_client = SimpleNamespace(
+        containers=SimpleNamespace(
+            run=lambda image, **kwargs: SimpleNamespace(
+                id=fake_container.id,
+                image=image,
+                kwargs=kwargs,
+            )
+        )
+    )
+    captured = {}
 
-    expected = f"{host_mem_dir}:/mem/shared:rw"
-    assert expected in config.sandbox.sandboxes["main"].volumes
-    assert expected in config.sandbox.sandboxes["worker"].volumes
-    assert host_mem_dir.exists()
+    def _fake_run(image, **kwargs):
+        captured["image"] = image
+        captured["kwargs"] = kwargs
+        return fake_container
+
+    fake_client.containers.run = _fake_run
+    sandbox.client = fake_client
+
+    container_id = sandbox._get_container()
+
+    assert container_id == "container-1"
+    assert captured["kwargs"]["network"] == "agent_net"
+
+
+def test_native_docker_network_default_omits_network():
+    from opensage.sandbox.native_docker_sandbox import NativeDockerSandbox
+
+    sandbox = object.__new__(NativeDockerSandbox)
+    sandbox.container_config_obj = ContainerConfig(
+        image="ubuntu:latest",
+        container_name="test-container",
+    )
+    sandbox.sandbox_type = "main"
+    sandbox.opensage_session_id = "session-1"
+
+    fake_container = SimpleNamespace(id="container-1")
+    captured = {}
+
+    def _fake_run(image, **kwargs):
+        captured["kwargs"] = kwargs
+        return fake_container
+
+    sandbox.client = SimpleNamespace(containers=SimpleNamespace(run=_fake_run))
+
+    sandbox._get_container()
+
+    assert "network" not in captured["kwargs"]

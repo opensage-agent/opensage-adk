@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# OpenSage -> SLIME Training Launcher
+# OpenSage → SLIME Training Launcher
 #
 # Usage (inside the slime container):
 #   bash /root/opensage/rl/slime/train.sh                        # mock (default)
@@ -102,7 +102,7 @@ print(' '.join(args))
     echo "  → EXTRA_TRAIN_ARGS=${EXTRA_TRAIN_ARGS}"
 fi
 
-AGENT_DIR="${OPENSAGE_DIR}/examples/agents/${AGENT}"
+AGENT_DIR="${OPENSAGE_DIR}/agent_library/agents/${AGENT}"
 for d in "$SLIME_DIR" "$OPENSAGE_DIR" "$AGENT_DIR"; do
     [[ -d "$d" ]] || { echo "ERROR: directory not found: $d"; exit 1; }
 done
@@ -130,7 +130,7 @@ fi
 MODE="production"; [[ "$DEBUG" -eq 1 ]] && MODE="debug"
 echo ""
 echo "============================================"
-echo "  OpenSage -> SLIME Training (${MODE})"
+echo "  OpenSage → SLIME Training (${MODE})"
 echo "  Benchmark:  ${BENCHMARK} / ${AGENT}"
 echo "  Data:       ${DATA_FILE:-<auto>}"
 echo "  GPUs:       ${GPUS:-<all>}"

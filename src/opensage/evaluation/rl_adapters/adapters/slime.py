@@ -73,7 +73,7 @@ def _schema_to_openai_dict(schema) -> dict:
     return schema_dict
 
 
-class SlimeAdapter(BaseAdapter):
+class SlimeAdapter(BaseAdapter, framework="slime"):
     """Adapter for slime RL framework integration.
 
     Handles the translation between slime's Sample format and OpenSage's
@@ -180,7 +180,7 @@ class SlimeAdapter(BaseAdapter):
             return result_sample
 
         except Exception as e:
-            logger.error(f"OpenSage agent error: {e}", exc_info=True)
+            logger.exception(f"OpenSage agent error: {e}")
             return self._build_error_sample(sample, e, slime_llm=slime_llm)
 
     def _create_slime_llm(

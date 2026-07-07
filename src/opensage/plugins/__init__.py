@@ -25,6 +25,7 @@ _ADK_PLUGIN_DIR = Path(__file__).resolve().parent / "default" / "adk_plugins"
 _CLAUDE_CODE_HOOK_DIR = (
     Path(__file__).resolve().parent / "default" / "claude_code_hooks"
 )
+_INTERNAL_ADK_PLUGINS = {"runtime_budget_plugin"}
 
 # Characters that indicate a regex pattern rather than a literal plugin name.
 _REGEX_METACHARACTERS = set(".*+?[](){}|^$\\")
@@ -70,6 +71,8 @@ def _discover_all_plugins(
         if kind in (PluginKind.ADK, PluginKind.ALL):
             for py_file in sorted(d.glob("*.py")):
                 if py_file.name.startswith("_"):
+                    continue
+                if d == _ADK_PLUGIN_DIR and py_file.stem in _INTERNAL_ADK_PLUGINS:
                     continue
                 discovered[py_file.stem] = (PluginKind.ADK, py_file)
         if kind in (PluginKind.CC_HOOK, PluginKind.ALL):

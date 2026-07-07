@@ -42,7 +42,7 @@ async def test_show_coverage_missing_arguments(opensage_session: OpenSageSession
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test show-coverage without arguments (should fail)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command="bash /bash_tools/coverage/show-coverage/scripts/show_coverage.sh",
         tool_context=mock_context,
         sandbox_name="main",
@@ -62,7 +62,7 @@ async def test_show_coverage_with_arguments(opensage_session: OpenSageSession):
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test with testcase_id and function_name (may not find data, but should return output)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/coverage/show-coverage/scripts/show_coverage.sh "testcase123" "test_function"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -80,7 +80,7 @@ async def test_show_coverage_output_structure(opensage_session: OpenSageSession)
     mock_context = MagicMock()
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/coverage/show-coverage/scripts/show_coverage.sh "testcase123" "test_function"',
         tool_context=mock_context,
         sandbox_name="main",

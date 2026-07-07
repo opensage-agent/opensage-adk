@@ -43,7 +43,7 @@ async def test_joern_query_basic(opensage_session: OpenSageSession):
 
     # Test with a simple Joern query
     query = 'cpg.method.name(".*").l'
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command=f'python3 /bash_tools/static_analysis/joern-query/scripts/joern_query.py "{query}"',
         tool_context=mock_context,
         sandbox_name="joern",
@@ -82,7 +82,7 @@ async def test_joern_query_complex(opensage_session: OpenSageSession):
 
     # Test with a more complex query
     query = 'cpg.method.name("file_fsmagic").l'
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command=f'python3 /bash_tools/static_analysis/joern-query/scripts/joern_query.py "{query}"',
         tool_context=mock_context,
         sandbox_name="joern",

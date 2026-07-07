@@ -42,7 +42,7 @@ async def test_joern_slice_basic(opensage_session: OpenSageSession):
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test joern-slice with function name
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/static_analysis/joern-slice/scripts/joern_slice.sh "file_fsmagic"',
         tool_context=mock_context,
         sandbox_name="joern",
@@ -72,7 +72,7 @@ async def test_joern_slice_with_file_path(opensage_session: OpenSageSession):
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test with file path
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/static_analysis/joern-slice/scripts/joern_slice.sh "file_fsmagic" --file-path "file/src/fsmagic.c"',
         tool_context=mock_context,
         sandbox_name="joern",

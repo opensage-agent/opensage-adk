@@ -1,6 +1,7 @@
 """Live integration test for WebSearchTool with a full agent.
 
 Requires ANTHROPIC_API_KEY to be set.  Skipped when the key is absent.
+Also skipped when Anthropic reports an account quota/rate-limit condition.
 
 Run:
     ANTHROPIC_API_KEY=sk-... uv run pytest tests/integration/tests/test_web_search_tool_integration.py -v
@@ -13,33 +14,55 @@ import warnings
 import pytest
 from google.adk import Runner
 from google.adk.apps.app import App
-from google.adk.models.lite_llm import LiteLlm
 from google.genai import types
+from litellm.exceptions import BadRequestError, RateLimitError
 
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.memory.file_based.short_term.session_files import (
+    build_root_session_state,
+)
+from opensage.session import get_opensage_session
 from opensage.toolbox.general.web_search_tool import WebSearchTool
+from opensage.utils.agent_utils import create_litellm_model
 
 # Filter out Pydantic serialization warnings from LiteLLM
 warnings.filterwarnings("ignore", message=".*Pydantic serializer warnings.*")
 warnings.filterwarnings("ignore", message=".*PydanticSerializationUnexpectedValue.*")
 
+_PROVIDER_LIMIT_HINTS = (
+    "usage limit",
+    "rate limit",
+    "quota",
+    "insufficient_quota",
+    "credit balance",
+)
+
+
+def _skip_if_provider_limit_error(exc: BadRequestError | RateLimitError) -> None:
+    """Skip live provider quota/rate-limit failures without hiding real bad requests."""
+    if isinstance(exc, RateLimitError):
+        is_limit_error = True
+    else:
+        message = str(exc).lower()
+        is_limit_error = any(hint in message for hint in _PROVIDER_LIMIT_HINTS)
+
+    if is_limit_error:
+        reason = " ".join(str(exc).split())
+        pytest.skip(
+            "Anthropic API quota/rate limit reached during live web search "
+            f"integration: {reason[:500]}"
+        )
+
 
 @pytest.fixture
 def web_search_agent():
     """Create a minimal agent with WebSearchTool."""
-    from opensage.features.agent_history_tracker import disable_neo4j_logging
-
-    try:
-        disable_neo4j_logging()
-    except Exception:
-        pass
-
     agent = OpenSageAgent(
         name="web_search_test_agent",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-6"),
+        model=create_litellm_model("anthropic/claude-sonnet-4-6"),
         description="Test agent with web search.",
         instruction="You MUST use web search for every question. Never answer from memory. Always search first, then answer based on search results. Keep answers short.",
         tools=[WebSearchTool(search_context_size="low")],
@@ -69,27 +92,37 @@ async def test_web_search_agent_returns_grounded_response(web_search_agent):
     app = App(name=app_name, root_agent=web_search_agent)
     runner = Runner(app=app, session_service=session_service)
 
+    get_opensage_session(opensage_session_id=session_id)
+
     await session_service.create_session(
         app_name=app_name,
         user_id=user_id,
         session_id=session_id,
-        state={"opensage_session_id": session_id},
+        state=build_root_session_state(
+            opensage_session_id=session_id,
+            session_id=session_id,
+            agent_name=web_search_agent.name,
+        ),
     )
 
     events = []
-    async for event in runner.run_async(
-        user_id=user_id,
-        session_id=session_id,
-        new_message=types.Content(
-            role="user",
-            parts=[
-                types.Part.from_text(
-                    text="What is the current price of Bitcoin in USD today?"
-                )
-            ],
-        ),
-    ):
-        events.append(event)
+    try:
+        async for event in runner.run_async(
+            user_id=user_id,
+            session_id=session_id,
+            new_message=types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(
+                        text="What is the current price of Bitcoin in USD today?"
+                    )
+                ],
+            ),
+        ):
+            events.append(event)
+    except (BadRequestError, RateLimitError) as exc:
+        _skip_if_provider_limit_error(exc)
+        raise
 
     # Check the text response
     response_texts = []

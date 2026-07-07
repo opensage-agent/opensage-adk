@@ -5,7 +5,6 @@ import contextlib
 import json
 import logging
 import os
-import re
 import signal
 import sys
 import time
@@ -35,9 +34,11 @@ from opensage.cli.opensage_web_app import OpenSageWebServer
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.memory.file_based.short_term import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session import cleanup_opensage_session, get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.utils.agent_utils import sanitize_agent_name
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
 
 logger = logging.getLogger(__name__)
@@ -129,15 +130,20 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
 
     # 1) Create session from config
     opensage_session = get_opensage_session(
-        opensage_session_id=session_id, config_path=config_path
+        opensage_session_id=session_id,
+        config_path=config_path,
+        agent_dir=agent_dir,
     )
 
     # 1.5) Collect sandbox dependencies from the specified agent, and prune config
     tools_top_roots = None
+    mk_agent = _load_mk_agent_from_dir(agent_dir)
+    dummy_agent = mk_agent(opensage_session_id=session_id)
+
     try:
-        mk_agent = _load_mk_agent_from_dir(agent_dir)
-        dummy_agent = mk_agent(opensage_session_id=session_id)
-        sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
+        sandbox_dependencies = collect_sandbox_dependencies(
+            dummy_agent, config=opensage_session.config
+        )
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
         if (
             opensage_session.config.sandbox
@@ -194,94 +200,28 @@ def _session_store_dir(session_id: str) -> Path:
     return _SESSION_STORE_ROOT / session_id
 
 
-def _sanitize_identifier(name: str) -> str:
-    """Sanitize a name into a valid Python identifier (letters, digits, underscores)."""
-    sanitized = re.sub(r"[^A-Za-z0-9_]+", "_", (name or "").strip())
-    sanitized = sanitized.strip("_") or "agent"
-    if sanitized[0].isdigit():
-        sanitized = f"_{sanitized}"
-    return sanitized
+def _is_saved_session_dir(path: Path) -> bool:
+    """Return whether a directory is a resumable saved session snapshot."""
+    return path.is_dir() and (path / "metadata.json").exists()
 
 
-def _session_store_dir_for_agent(*, session_id: str, agent_name: str) -> Path:
-    """Return canonical session store dir: <agent_name>_<session_id>."""
-    return _SESSION_STORE_ROOT / f"{_sanitize_identifier(agent_name)}_{session_id}"
-
-
-def _collect_sandbox_runtime_metadata(opensage_session) -> dict:
-    """Collect attachable runtime metadata for current sandboxes."""
-    backend = (
-        getattr(getattr(opensage_session, "config", None), "sandbox", None)
-        and opensage_session.config.sandbox.backend
-    ) or "native"
-    sandboxes = {}
-    for sandbox_type, sandbox in opensage_session.sandboxes.list_sandboxes().items():
-        entry = {"backend": backend}
-        container_id = getattr(sandbox, "container_id", None)
-        pod_name = getattr(sandbox, "pod_name", None)
-        container_name = getattr(sandbox, "container_name", None)
-        if container_id:
-            entry["container_id"] = container_id
-        if pod_name:
-            entry["pod_name"] = pod_name
-        if container_name:
-            entry["container_name"] = container_name
-        sandboxes[sandbox_type] = entry
-    return {"backend": backend, "sandboxes": sandboxes}
-
-
-async def _persist_web_session_snapshot_async(
+def _persist_session_snapshot(
     *,
-    session_id: str,
+    opensage_session,
+    agent_dir: str,
     app_name: str,
     user_id: str,
-    agent_dir: str,
-    session_service: OpenSageInMemorySessionService,
-    opensage_session,
+    root_agent_name: str | None,
 ) -> Path:
-    """Persist ADK session + sandbox runtime metadata to local disk."""
-    agent_name = Path(agent_dir).resolve().name
-    store_dir = _session_store_dir_for_agent(
-        session_id=session_id, agent_name=agent_name
+    from opensage.orchestration.persistence import persist_session_snapshot
+
+    return persist_session_snapshot(
+        opensage_session=opensage_session,
+        agent_dir=agent_dir,
+        app_name=app_name,
+        user_id=user_id,
+        root_agent_name=root_agent_name,
     )
-    store_dir.mkdir(parents=True, exist_ok=True)
-
-    adk_session = await session_service.get_session(
-        app_name=app_name, user_id=user_id, session_id=session_id
-    )
-    if adk_session is None:
-        raise click.ClickException(
-            f"Cannot persist session: ADK session not found ({session_id})"
-        )
-
-    persisted_snapshot = _sanitize_adk_session_for_persistence(
-        adk_session, copy_before_mutating=True
-    )
-    session_snapshot_path = store_dir / "adk_session.json"
-    session_snapshot_path.write_text(
-        persisted_snapshot.model_dump_json(indent=2, exclude_none=True),
-        encoding="utf-8",
-    )
-
-    # Persist the fully resolved runtime config used by this session.
-    resolved_config_path = store_dir / "resolved_config.toml"
-    opensage_session.config.save_to_toml(str(resolved_config_path))
-
-    metadata = {
-        "session_id": session_id,
-        "agent_name": agent_name,
-        "agent_dir": str(Path(agent_dir).expanduser().resolve()),
-        "app_name": app_name,
-        "user_id": user_id,
-        "saved_at_unix": int(time.time()),
-        "resolved_config_file": resolved_config_path.name,
-        "runtime": _collect_sandbox_runtime_metadata(opensage_session),
-    }
-    metadata_path = store_dir / "metadata.json"
-    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-
-    logger.info("Persisted OpenSage web session snapshot to %s", store_dir)
-    return store_dir
 
 
 async def _attach_sandboxes_from_snapshot_async(
@@ -312,6 +252,7 @@ async def _load_adk_session_into_service_async(
     session_id: str,
     target_app_name: str,
     target_user_id: str,
+    root_agent,
 ) -> tuple[str, str]:
     """Load persisted ADK session object into the in-memory session service."""
     from google.adk.sessions.session import Session
@@ -319,14 +260,31 @@ async def _load_adk_session_into_service_async(
     if not snapshot_path.exists():
         raise click.ClickException(f"Session snapshot file not found: {snapshot_path}")
 
+    from opensage.orchestration.persistence import sanitize_adk_session
+
     persisted = Session.model_validate_json(snapshot_path.read_text(encoding="utf-8"))
-    persisted = _sanitize_adk_session_for_persistence(
-        persisted, copy_before_mutating=False
-    )
+    persisted = sanitize_adk_session(persisted, copy=False)
     # Force requested session id as source of truth.
     persisted.id = session_id
     persisted.app_name = target_app_name
     persisted.user_id = target_user_id
+    persisted_state = persisted.state if isinstance(persisted.state, dict) else {}
+    persisted_state["opensage_session_id"] = session_id
+    expected_root_state = build_root_session_state(
+        opensage_session_id=session_id,
+        session_id=session_id,
+        agent_name=getattr(root_agent, "name", "agent"),
+    )
+    expected_mem_dir = expected_root_state.get("_mem_agent_dir")
+    persisted_mem_dir = persisted_state.get("_mem_agent_dir")
+    if expected_mem_dir is not None and persisted_mem_dir != expected_mem_dir:
+        raise click.ClickException(
+            "Cannot resume file-memory session: persisted root session state is "
+            f"missing the expected `{expected_mem_dir}` directory."
+        )
+    if expected_mem_dir is None:
+        persisted_state.pop("_mem_agent_dir", None)
+    persisted.state = persisted_state
     app_name = target_app_name
     user_id = target_user_id
 
@@ -377,15 +335,17 @@ async def _resume_environment_async(
             "Resolved config snapshot missing in saved session and no --config provided. "
             "Please pass --config PATH for this legacy snapshot."
         )
+    agent_dir = metadata.get("agent_dir", "")
     opensage_session = get_opensage_session(
-        opensage_session_id=session_id, config_path=resume_config_path
+        opensage_session_id=session_id,
+        config_path=resume_config_path,
+        agent_dir=agent_dir or None,
     )
     await _attach_sandboxes_from_snapshot_async(
         opensage_session=opensage_session,
         snapshot_metadata=metadata,
     )
     logger.info("Resumed OpenSage environment for session: %s", session_id)
-    agent_dir = metadata.get("agent_dir", "")
     return session_id, metadata, agent_dir
 
 
@@ -396,7 +356,9 @@ def _resolve_latest_saved_session_dir() -> Path:
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
         )
 
-    session_dirs = [p for p in _SESSION_STORE_ROOT.iterdir() if p.is_dir()]
+    session_dirs = [
+        p for p in _SESSION_STORE_ROOT.iterdir() if _is_saved_session_dir(p)
+    ]
     if not session_dirs:
         raise click.ClickException(
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
@@ -419,6 +381,11 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
             raise click.ClickException(
                 f"Saved session path must be a directory: {resolved}"
             )
+        if not _is_saved_session_dir(resolved):
+            raise click.ClickException(
+                f"Saved session metadata not found in {resolved}: "
+                f"{resolved / 'metadata.json'}"
+            )
         return resolved
 
     if not _SESSION_STORE_ROOT.exists():
@@ -426,87 +393,99 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
         )
 
+    # Suffix match: find dirs whose name ends with the given string
+    suffix_matches = [
+        p
+        for p in _SESSION_STORE_ROOT.iterdir()
+        if _is_saved_session_dir(p) and p.name.endswith(resume_from)
+    ]
+
+    if len(suffix_matches) == 1:
+        return suffix_matches[0]
+
+    if len(suffix_matches) > 1:
+        names = ", ".join(sorted(p.name for p in suffix_matches))
+        raise click.ClickException(
+            f"Multiple saved sessions match '{resume_from}': {names}"
+        )
+
+    # Exact directory name (no suffix match found)
     exact_match = (_SESSION_STORE_ROOT / resume_from).resolve()
     if exact_match.exists():
         if not exact_match.is_dir():
             raise click.ClickException(
                 f"Saved session path must be a directory: {exact_match}"
             )
+        if not _is_saved_session_dir(exact_match):
+            raise click.ClickException(
+                f"Saved session metadata not found in {exact_match}: "
+                f"{exact_match / 'metadata.json'}"
+            )
         return exact_match
 
-    session_dirs = [p for p in _SESSION_STORE_ROOT.iterdir() if p.is_dir()]
-    suffix_matches = sorted(
-        [p for p in session_dirs if p.name.endswith(f"_{resume_from}")]
+    raise click.ClickException(
+        "Saved session not found. Pass a session id or an absolute path "
+        f"under {_SESSION_STORE_ROOT}: {resume_from}"
     )
+
+
+def _is_reviewable_session_dir(path: Path) -> bool:
+    """A directory is reviewable if it has instances/ with at least one traj.json."""
+    inst = path / "instances"
+    if not inst.is_dir():
+        return False
+    return any(inst.rglob("traj.json"))
+
+
+def _resolve_review_session_dir(session_path: Optional[str]) -> Path:
+    """Resolve a session directory for review (no metadata.json required)."""
+    if not session_path:
+        if not _SESSION_STORE_ROOT.exists():
+            raise click.ClickException(
+                f"No sessions found under {_SESSION_STORE_ROOT}."
+            )
+        dirs = [
+            p
+            for p in _SESSION_STORE_ROOT.iterdir()
+            if p.is_dir() and _is_reviewable_session_dir(p)
+        ]
+        if not dirs:
+            raise click.ClickException(
+                f"No reviewable sessions found under {_SESSION_STORE_ROOT}."
+            )
+        return max(dirs, key=lambda p: p.stat().st_mtime)
+
+    candidate = Path(session_path).expanduser()
+    if candidate.is_absolute():
+        resolved = candidate.resolve()
+        if not resolved.exists():
+            raise click.ClickException(f"Session directory not found: {resolved}")
+        if not resolved.is_dir():
+            raise click.ClickException(f"Session path must be a directory: {resolved}")
+        return resolved
+
+    if not _SESSION_STORE_ROOT.exists():
+        raise click.ClickException(f"No sessions found under {_SESSION_STORE_ROOT}.")
+    exact_match = (_SESSION_STORE_ROOT / session_path).resolve()
+    if exact_match.exists() and exact_match.is_dir():
+        return exact_match
+
+    suffix_matches = [
+        p
+        for p in _SESSION_STORE_ROOT.iterdir()
+        if p.is_dir() and p.name.endswith(session_path)
+    ]
     if len(suffix_matches) == 1:
         return suffix_matches[0]
     if len(suffix_matches) > 1:
         raise click.ClickException(
-            "Multiple saved sessions match "
-            f"'{resume_from}': {', '.join(p.name for p in suffix_matches)}"
+            f"Ambiguous session suffix {session_path!r}: "
+            + ", ".join(p.name for p in suffix_matches)
         )
 
     raise click.ClickException(
-        "Saved session not found. Pass a saved session directory name, "
-        f"a bare session id suffix, or an absolute path under {_SESSION_STORE_ROOT}: "
-        f"{resume_from}"
+        f"Session not found: {session_path} (looked under {_SESSION_STORE_ROOT})"
     )
-
-
-def _drop_unmatched_function_call_events_for_resume(events):
-    """Drop unresolved function_call-only events from a persisted session."""
-    matched_response_ids: set[str] = set()
-    for event in events:
-        content = getattr(event, "content", None)
-        parts = getattr(content, "parts", None) or []
-        for part in parts:
-            function_response = getattr(part, "function_response", None)
-            if function_response and getattr(function_response, "id", None):
-                matched_response_ids.add(function_response.id)
-
-    sanitized_events = []
-    for event in events:
-        content = getattr(event, "content", None)
-        parts = getattr(content, "parts", None) or []
-        if not parts:
-            sanitized_events.append(event)
-            continue
-
-        kept_parts = []
-        removed_any = False
-        for part in parts:
-            function_call = getattr(part, "function_call", None)
-            if (
-                function_call
-                and getattr(function_call, "id", None)
-                and function_call.id not in matched_response_ids
-            ):
-                removed_any = True
-                continue
-            kept_parts.append(part)
-
-        if not removed_any:
-            sanitized_events.append(event)
-            continue
-        if not kept_parts:
-            continue
-
-        sanitized_event = event.model_copy(deep=True)
-        sanitized_event.content.parts = kept_parts
-        sanitized_events.append(sanitized_event)
-
-    return sanitized_events
-
-
-def _sanitize_adk_session_for_persistence(session, *, copy_before_mutating: bool):
-    """Trim unresolved function_call events from an ADK session."""
-    target = session.model_copy(deep=True) if copy_before_mutating else session
-    target.events = _drop_unmatched_function_call_events_for_resume(target.events or [])
-    if target.events:
-        last_event_ts = getattr(target.events[-1], "timestamp", None)
-        if last_event_ts is not None:
-            target.last_update_time = last_event_ts
-    return target
 
 
 def _verify_agent_module(agent_dir: str) -> None:
@@ -589,12 +568,6 @@ def _verify_agent_module(agent_dir: str) -> None:
     help="Logging level for the server.",
 )
 @click.option(
-    "--neo4j_logging/--no-neo4j_logging",
-    default=False,
-    show_default=True,
-    help="Enable Neo4j event logging via monkey patches.",
-)
-@click.option(
     "--auto_cleanup",
     type=bool,
     default=False,
@@ -630,7 +603,6 @@ def cli_web(
     host: str,
     port: int,
     log_level: str,
-    neo4j_logging: bool,
     auto_cleanup: bool,
     resume: bool,
     resume_from: Optional[str],
@@ -659,18 +631,6 @@ def cli_web(
             raise click.ClickException("Missing required option '--agent'.")
         if not resume_requested:
             config_path = _resolve_config_path(config_path, agent_dir)
-
-        # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
-        if neo4j_logging:
-            try:
-                from opensage.features.agent_history_tracker import (
-                    enable_neo4j_logging,
-                )
-
-                enable_neo4j_logging()
-                logger.info("Neo4j logging enabled.")
-            except Exception as e:
-                logger.error("Failed to enable Neo4j logging: %s", e)
 
         # 1) Prepare environment (fresh) or resume environment (attach existing)
         resume_metadata = None
@@ -724,16 +684,25 @@ def cli_web(
             enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
         )
 
-        # 3) Build services (use OpenSageInMemorySessionService and pre-create the ADK session)
+        # 3) Use the ADK services owned by OpenSageSession (one set per environment).
         # Infer app name as the parent folder of the agent directory.
-        # Example: /.../examples/agents/debuger_agent -> app_name = "agents"
+        # Example: /.../agent_library/agents/debuger_agent -> app_name = "agents"
         raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
-        app_name = _sanitize_identifier(raw_app_name)
-        session_service = OpenSageInMemorySessionService()
+        app_name = sanitize_agent_name(raw_app_name)
+        session_service = opensage_session.session_service
+        artifact_service = opensage_session.artifact_service
+        memory_service = opensage_session.memory_service
+        credential_service = opensage_session.credential_service
 
-        artifact_service = InMemoryArtifactService()
-        memory_service = InMemoryMemoryService()
-        credential_service = InMemoryCredentialService()
+        # 3b) Register root agent and every OpenSage subagent under it with the
+        # AgentManager, so that call_subagent / continue_agent_instance /
+        # send_message tools can resolve names in this environment. The
+        # dispatcher is started inside the uvicorn lifespan (see _lifespan
+        # below) so it runs on the same event loop that will serve requests.
+        opensage_session.agent_manager.set_app_name(app_name)
+        opensage_session.agent_manager.set_base_plugins(plugins)
+        opensage_session.agent_manager.register_agent_tree(root_agent)
+
         # Eval managers (local) to retain parity with ADK Dev UI features
         agents_dir_parent = os.path.dirname(agent_dir) or "."
         eval_sets_manager = LocalEvalSetsManager(agents_dir=agents_dir_parent)
@@ -741,7 +710,19 @@ def cli_web(
             agents_dir=agents_dir_parent
         )
 
-        # 4) Create our single-agent web server (rich endpoints, no agent reload)
+        # 4) Load fake-user function from config (if configured)
+        fake_user_fn = None
+        fake_user_cfg = getattr(opensage_session.config, "fake_user", None)
+        if fake_user_cfg and getattr(fake_user_cfg, "python_file", None):
+            from opensage.orchestration.fake_user import load_fake_user_from_file
+
+            fake_user_fn = load_fake_user_from_file(
+                fake_user_cfg.python_file,
+                agent_dir=agent_dir,
+            )
+            logger.info("Loaded fake_user from %s", fake_user_cfg.python_file)
+
+        # 5) Create our single-agent web server (rich endpoints, no agent reload)
         web_server = OpenSageWebServer(
             app_name=app_name,
             root_agent=root_agent,
@@ -756,6 +737,9 @@ def cli_web(
             plugins=plugins,
         )
         # Pre-create or restore the ADK session using fixed session id.
+        # Both paths go through agent_manager.spawn — for resume, the legacy
+        # snapshot is first injected into the session_service and spawn adopts
+        # the existing session; otherwise spawn creates a fresh one.
         if resume_metadata:
             snapshot_path = (
                 resume_store_dir or _session_store_dir(session_id)
@@ -767,19 +751,46 @@ def cli_web(
                     session_id=session_id,
                     target_app_name=web_server.app_name,
                     target_user_id="user",
+                    root_agent=root_agent,
                 )
             )
             session_user_id = restored_user_id
         else:
-            asyncio.run(
-                session_service.create_session(
-                    app_name=web_server.app_name,
-                    user_id="user",
-                    state={"opensage_session_id": session_id},
-                    session_id=session_id,
-                )
+            session_user_id = "user"
+
+        asyncio.run(
+            opensage_session.agent_manager.spawn(
+                agent_name=root_agent.name,
+                session_id=session_id,
+                parent_session_id=None,
             )
-        app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
+        )
+
+        if fake_user_fn:
+            inst = opensage_session.agent_manager.get_instance(session_id)
+            if inst:
+                inst.fake_user_fn = fake_user_fn
+
+        # Lifespan owns the dispatcher task. Anything that creates persistent
+        # event-loop state (Tasks/Queues) must run here so it lives on
+        # uvicorn's loop — which is also the loop that serves requests and
+        # therefore the loop where call_subagent / send_message-triggered
+        # invocations execute. spawn() does NOT belong here: it does internal
+        # awaits but creates only disk + dict state, no loop-bound resources.
+        @contextlib.asynccontextmanager
+        async def _lifespan(app):
+            started = False
+            try:
+                await opensage_session.agent_manager.start()
+                started = True
+                yield
+            finally:
+                if started:
+                    await opensage_session.agent_manager.shutdown()
+
+        app = web_server.get_fast_api_app(
+            allow_origins=None, enable_dev_ui=True, lifespan=_lifespan
+        )
 
         config = uvicorn.Config(
             app,
@@ -807,21 +818,18 @@ def cli_web(
                         "Failed to clean up OpenSage session during web shutdown: %s",
                         session_id,
                     )
-            elif (
-                session_service is not None
-                and web_server is not None
-                and opensage_session is not None
-            ):
+            elif web_server is not None and opensage_session is not None:
+                # Block SIGINT/SIGTERM during persist so a second ctrl+c
+                # cannot interrupt the snapshot write.
+                prev_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+                prev_sigterm = signal.signal(signal.SIGTERM, signal.SIG_IGN)
                 try:
-                    store_dir = asyncio.run(
-                        _persist_web_session_snapshot_async(
-                            session_id=session_id,
-                            app_name=web_server.app_name,
-                            user_id=session_user_id,
-                            agent_dir=agent_dir,
-                            session_service=session_service,
-                            opensage_session=opensage_session,
-                        )
+                    store_dir = _persist_session_snapshot(
+                        opensage_session=opensage_session,
+                        agent_dir=agent_dir,
+                        app_name=web_server.app_name,
+                        user_id=session_user_id,
+                        root_agent_name=getattr(root_agent, "name", "agent"),
                     )
                     click.secho(
                         f"Session snapshot saved to {store_dir}",
@@ -834,11 +842,458 @@ def cli_web(
                         "Failed to persist OpenSage web session snapshot during shutdown: %s",
                         session_id,
                     )
+                finally:
+                    signal.signal(signal.SIGINT, prev_sigint)
+                    signal.signal(signal.SIGTERM, prev_sigterm)
             else:
                 logger.warning(
                     "Skipping session snapshot for %s because web session state was not fully initialized.",
                     session_id,
                 )
+
+
+@main.command("run")
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=False, dir_okay=False, file_okay=True, resolve_path=True),
+    required=False,
+    default=None,
+    help="Path to OpenSage TOML config.",
+)
+@click.option(
+    "--agent",
+    "agent_dir",
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True),
+    required=False,
+    help="Path to the agent folder (must contain agent files).",
+)
+@click.option(
+    "--log_level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+    default="INFO",
+    show_default=True,
+    help="Logging level.",
+)
+@click.option(
+    "--auto_cleanup",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="Whether to cleanup sandboxes on process exit.",
+)
+@click.option(
+    "--resume",
+    is_flag=True,
+    default=False,
+    help="Resume from the most recently saved session.",
+)
+@click.option(
+    "--resume-from",
+    "resume_from",
+    type=str,
+    default=None,
+    help="Resume from a specific saved session.",
+)
+@click.option(
+    "--prompt",
+    "prompt",
+    type=str,
+    default=None,
+    help="Send a single prompt, run to completion, then exit (non-interactive).",
+)
+def cli_run(
+    config_path: Optional[str],
+    agent_dir: str,
+    log_level: str,
+    auto_cleanup: bool,
+    resume: bool,
+    resume_from: Optional[str],
+    prompt: Optional[str],
+):
+    """Run an agent interactively in the terminal (no web UI)."""
+    from google.genai import types
+
+    session_id: str | None = None
+    opensage_session = None
+    root_agent = None
+    session_user_id = "user"
+    resume_requested = resume or bool(resume_from)
+
+    def _cli_signal_handler(signum, _frame):
+        if signum == signal.SIGINT:
+            raise KeyboardInterrupt
+        raise SystemExit(128 + signum)
+
+    try:
+        logging.basicConfig(level=getattr(logging, log_level.upper()))
+        if not resume_requested and not agent_dir:
+            raise click.ClickException("Missing required option '--agent'.")
+        if not resume_requested:
+            config_path = _resolve_config_path(config_path, agent_dir)
+
+        resume_metadata = None
+        resume_store_dir: Path | None = None
+        if resume_requested:
+            resume_store_dir = _resolve_saved_session_dir(resume_from)
+            resume_session_id = resume_store_dir.name
+            click.secho(f"Resuming from session: {resume_session_id}", fg="cyan")
+            session_id, resume_metadata, resumed_agent_dir = asyncio.run(
+                _resume_environment_async(
+                    resume_dir=resume_store_dir, config_path=config_path or ""
+                )
+            )
+            if resumed_agent_dir:
+                if (
+                    agent_dir
+                    and Path(agent_dir).resolve() != Path(resumed_agent_dir).resolve()
+                ):
+                    logger.warning(
+                        "CLI --agent (%s) differs from resumed agent_dir (%s); using resumed.",
+                        agent_dir,
+                        resumed_agent_dir,
+                    )
+                agent_dir = resumed_agent_dir
+            elif not agent_dir:
+                raise click.ClickException(
+                    "Resume metadata does not contain agent_dir; please pass --agent."
+                )
+        else:
+            session_id = asyncio.run(
+                _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
+            )
+        click.secho(f"OpenSage session prepared: {session_id}", fg="green")
+        opensage_session = get_opensage_session(session_id)
+        opensage_session.config.auto_cleanup = auto_cleanup
+
+        mk_agent = _load_mk_agent_from_dir(agent_dir)
+        root_agent = mk_agent(opensage_session_id=session_id)
+        enabled_plugins = []
+        if opensage_session and getattr(opensage_session, "config", None):
+            plugins_cfg = getattr(opensage_session.config, "plugins", None)
+            enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
+            extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
+        plugins = load_plugins(
+            enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
+        )
+
+        raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
+        app_name = sanitize_agent_name(raw_app_name)
+        session_service = opensage_session.session_service
+
+        opensage_session.agent_manager.set_app_name(app_name)
+        opensage_session.agent_manager.set_base_plugins(plugins)
+        opensage_session.agent_manager.register_agent_tree(root_agent)
+
+        fake_user_fn = None
+        fake_user_cfg = getattr(opensage_session.config, "fake_user", None)
+        if fake_user_cfg and getattr(fake_user_cfg, "python_file", None):
+            from opensage.orchestration.fake_user import load_fake_user_from_file
+
+            fake_user_fn = load_fake_user_from_file(
+                fake_user_cfg.python_file,
+                agent_dir=agent_dir,
+            )
+            logger.info("Loaded fake_user from %s", fake_user_cfg.python_file)
+
+        if resume_metadata:
+            snapshot_path = (
+                resume_store_dir or _session_store_dir(session_id)
+            ) / "adk_session.json"
+            _, restored_user_id = asyncio.run(
+                _load_adk_session_into_service_async(
+                    session_service=session_service,
+                    snapshot_path=snapshot_path,
+                    session_id=session_id,
+                    target_app_name=app_name,
+                    target_user_id="user",
+                    root_agent=root_agent,
+                )
+            )
+            session_user_id = restored_user_id
+        else:
+            session_user_id = "user"
+
+        asyncio.run(
+            opensage_session.agent_manager.spawn(
+                agent_name=root_agent.name,
+                session_id=session_id,
+                parent_session_id=None,
+            )
+        )
+
+        def _print_event(event):
+            if not event.content or not event.content.parts:
+                return
+            text = "".join(part.text or "" for part in event.content.parts)
+            fn_calls = [
+                part.function_call for part in event.content.parts if part.function_call
+            ]
+            if text:
+                click.echo(click.style(f"[{event.author}]: ", fg="cyan") + text)
+            for fc in fn_calls:
+                click.echo(
+                    click.style(f"[{event.author}] ", fg="yellow")
+                    + f"→ {fc.name}({dict(fc.args) if fc.args else ''})"
+                )
+
+        async def _poll_and_print_events(manager):
+            seen = 0
+            while True:
+                session = await manager.session_service.get_session(
+                    app_name=app_name,
+                    user_id="user",
+                    session_id=session_id,
+                )
+                events = session.events if session else []
+                for evt in events[seen:]:
+                    _print_event(evt)
+                seen = len(events)
+                await asyncio.sleep(0.1)
+
+        async def _main_loop():
+            manager = opensage_session.agent_manager
+            await manager.start()
+
+            instance = manager.get_instance(session_id)
+            if instance and fake_user_fn:
+                instance.fake_user_fn = fake_user_fn
+
+            poll_task = asyncio.create_task(_poll_and_print_events(manager))
+            try:
+                if prompt:
+                    click.echo(click.style("[user]: ", fg="green") + prompt)
+                    await manager.send_message(
+                        from_sid="__user__",
+                        to_sid=session_id,
+                        content=prompt,
+                    )
+                    await manager.wait_until_idle(session_id)
+                else:
+                    click.secho(
+                        f"Running agent {root_agent.name}, type 'exit' to quit.",
+                        fg="green",
+                    )
+                    while True:
+                        try:
+                            query = await asyncio.get_event_loop().run_in_executor(
+                                None, lambda: input("[user]: ")
+                            )
+                        except EOFError:
+                            break
+                        if not query or not query.strip():
+                            continue
+                        if query.strip() == "exit":
+                            break
+                        await manager.send_message(
+                            from_sid="__user__",
+                            to_sid=session_id,
+                            content=query,
+                        )
+                        await manager.wait_until_idle(session_id)
+            finally:
+                poll_task.cancel()
+                await manager.shutdown()
+
+        signal.signal(signal.SIGINT, _cli_signal_handler)
+        signal.signal(signal.SIGTERM, _cli_signal_handler)
+        asyncio.run(_main_loop())
+
+    except (KeyboardInterrupt, SystemExit):
+        click.secho("\nShutting down...", fg="yellow")
+    finally:
+        if session_id is not None:
+            if auto_cleanup:
+                try:
+                    cleanup_opensage_session(session_id)
+                except Exception:
+                    logger.exception("Failed to clean up session: %s", session_id)
+            elif opensage_session is not None:
+                prev_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+                prev_sigterm = signal.signal(signal.SIGTERM, signal.SIG_IGN)
+                try:
+                    store_dir = _persist_session_snapshot(
+                        opensage_session=opensage_session,
+                        agent_dir=agent_dir,
+                        app_name=app_name,
+                        user_id=session_user_id,
+                        root_agent_name=getattr(root_agent, "name", "agent"),
+                    )
+                    click.secho(f"Session snapshot saved to {store_dir}", fg="yellow")
+                except Exception:
+                    logger.exception(
+                        "Failed to persist session snapshot: %s", session_id
+                    )
+                finally:
+                    signal.signal(signal.SIGINT, prev_sigint)
+                    signal.signal(signal.SIGTERM, prev_sigterm)
+
+
+@main.command("review")
+@click.option(
+    "--host",
+    type=str,
+    default="127.0.0.1",
+    show_default=True,
+    help="Binding host for the server.",
+)
+@click.option(
+    "--port",
+    type=int,
+    default=8000,
+    show_default=True,
+    help="Port for the server.",
+)
+@click.option(
+    "--log_level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+    default="INFO",
+    show_default=True,
+    help="Logging level for the server.",
+)
+@click.option(
+    "--live",
+    is_flag=True,
+    default=False,
+    help="Live mode: poll traj.json files for updates (for watching running agents).",
+)
+@click.argument("session_path", required=False, default=None)
+def cli_review(
+    host: str,
+    port: int,
+    log_level: str,
+    live: bool,
+    session_path: Optional[str],
+):
+    """Read-only session viewer — no LLM, no sandbox, no core services.
+
+    SESSION_PATH is a session directory under ~/.local/opensage/sessions/
+    (name, suffix, or absolute path).  If omitted, opens the most recent one.
+
+    With --live, the viewer polls traj.json files every few seconds and
+    updates the UI with new events. Use this to watch a running agent
+    started with `opensage run`.
+    """
+    logging.basicConfig(level=getattr(logging, log_level.upper()))
+
+    from google.adk.agents.base_agent import BaseAgent as _BaseAgent
+    from google.adk.sessions.session import Session
+
+    from opensage.orchestration.persistence import sanitize_adk_session
+
+    store_dir = _resolve_review_session_dir(session_path)
+
+    inst_root = store_dir / "instances"
+    if not inst_root.exists():
+        raise click.ClickException(
+            f"No instances/ directory found in {store_dir}. Nothing to review."
+        )
+
+    session_service = OpenSageInMemorySessionService()
+    artifact_service = InMemoryArtifactService()
+    memory_service = InMemoryMemoryService()
+    credential_service = InMemoryCredentialService()
+
+    app_name = "app"
+    root_agent_name = "agent"
+    root_session_id = None
+
+    def _load_all_sessions():
+        nonlocal app_name, root_agent_name, root_session_id
+        entries = []
+        next_app_name = app_name
+        next_root_agent_name = root_agent_name
+        next_root_session_id = root_session_id
+
+        loaded = 0
+        for traj_path in inst_root.rglob("traj.json"):
+            inst_dir = traj_path.parent
+            inst_meta_path = inst_dir / "metadata.json"
+            inst_meta = {}
+            if inst_meta_path.exists():
+                inst_meta = json.loads(inst_meta_path.read_text(encoding="utf-8"))
+                sid = inst_meta.get("session_id", inst_dir.name)
+                if inst_meta.get("parent_session_id") is None:
+                    next_root_agent_name = inst_meta.get(
+                        "agent_name", next_root_agent_name
+                    )
+                    next_app_name = inst_meta.get("app_name", next_app_name)
+                    next_root_session_id = sid
+            else:
+                sid = inst_dir.name
+            entries.append((traj_path, sid))
+
+        app_name = next_app_name
+        root_agent_name = next_root_agent_name
+        root_session_id = next_root_session_id
+
+        for traj_path, sid in entries:
+            session = Session.model_validate_json(traj_path.read_text(encoding="utf-8"))
+            session = sanitize_adk_session(session, copy=False)
+            session.id = sid
+            session.app_name = app_name
+            session.user_id = "user"
+            session_service.inject_session(session)
+            loaded += 1
+        return loaded
+
+    loaded = _load_all_sessions()
+    session_id = root_session_id or store_dir.name
+
+    mode_label = "Live" if live else "Review"
+    click.secho(f"{mode_label} mode — session {session_id}", fg="cyan")
+    click.secho("Read-only viewer (no LLM, no sandbox).", fg="yellow")
+    click.secho(f"Loaded {loaded} session(s) from instances/.", fg="cyan")
+
+    stub_agent = _BaseAgent(name=root_agent_name)
+
+    web_server = OpenSageWebServer(
+        app_name=app_name,
+        root_agent=stub_agent,
+        fixed_session_id=session_id,
+        session_service=session_service,
+        artifact_service=artifact_service,
+        memory_service=memory_service,
+        credential_service=credential_service,
+        review_instances_root=inst_root,
+    )
+
+    app = web_server.get_fast_api_app(
+        allow_origins=None,
+        enable_dev_ui=True,
+    )
+
+    if live:
+        import threading
+
+        def _poll_loop():
+            while True:
+                time.sleep(3)
+                try:
+                    _load_all_sessions()
+                except Exception:
+                    pass
+
+        poller = threading.Thread(target=_poll_loop, daemon=True)
+        poller.start()
+        click.secho("Live polling enabled (3s interval).", fg="yellow")
+
+    config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level=log_level.lower(),
+    )
+    click.secho(
+        f"{mode_label} UI at http://{host}:{port} (session: {session_id})",
+        fg="green",
+    )
+    server = uvicorn.Server(config)
+    server.run()
 
 
 @main.command("dependency-check")

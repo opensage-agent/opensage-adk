@@ -7,20 +7,14 @@ name = "opensage"
 version = "0.1.0"
 description = "OpenSage"
 readme = "README.md"
-license = "Apache-2.0"
 requires-python = ">=3.12"
-classifiers = [
-    "License :: OSI Approved :: Apache Software License",
-]
 dependencies = [
     "pip",
     "google-adk<=1.25.1",
     "pandas==2.2.3",
-    "neomodel==5.4.3",
     "docker==7.1.0",
-    "paramiko>=3.0.0",
-    "python-dotenv==1.1.0",
-    "tree-sitter-languages==1.10.2",
+    "python-dotenv>=1.1.0",
+    "tree-sitter-language-pack==1.6.2",
     "pyyaml==6.0.2",
     "requests==2.32.4",
     "litellm>=1.74.7",
@@ -36,8 +30,8 @@ dependencies = [
     "click>=8.1.8,<9.0.0",
     "uvicorn>=0.34.0,<1.0.0",
     "python-magic>=0.4.27",
-    "opensandbox>=0.1.5",
-    "agentdocker-lite @ git+https://github.com/rucnyz/agentdocker-lite.git@main",
+    "Pillow>=12.0.0",
+    "neo4j>=5.26.0",
 ]
 
 [project.optional-dependencies]
@@ -52,8 +46,31 @@ langfuse = [
 cybergym = [
     "cybergym[dev,server] @ git+https://github.com/sunblaze-ucb/cybergym",
 ]
+harbor = [
+    # harbor CLI is used for downloading tasks (subprocess only, not imported).
+    # Install separately if dependency conflicts arise: pip install "harbor>=0.3.0"
+    "harbor>=0.3.0",
+]
+agentbeats = [
+    # Required for the OpenSage × AgentBeats integration (evals/agentbeats/).
+    # google-adk 1.25.1 uses the a2a-sdk 0.3.x API surface
+    # (a2a.server.apps.A2AStarletteApplication etc.).  The 1.0.x series
+    # changed the API completely; pin to 0.3.x for compatibility.
+    "a2a-sdk>=0.3.26,<1.0.0",
+    # `fastmcp` is used by AgentBeats' MCP server; needed if running the full
+    # AgentBeats stack locally for end-to-end testing.
+    "fastmcp>=2.0.0",
+    # `httpx` is used by the launcher to poll agent readiness.
+    "httpx>=0.27.0",
+]
+nitrobox = [
+    "nitrobox @ git+https://github.com/opensage-agent/nitrobox.git@main",
+]
+opensandbox = [
+    "opensandbox>=0.1.5",
+]
 full = [
-    "opensage[langfuse,cybergym]",
+    "opensage[langfuse,cybergym,harbor,agentbeats,nitrobox,opensandbox]",
 ]
 
 [project.scripts]
@@ -66,15 +83,10 @@ dev = [
     "pytest",
     "pytest-asyncio",
     "pytest-timeout",
-    "ruff",
+    "ruff==0.15.9",
 ]
 docs = [
-    "mkdocs>=1.5.0",
-    "mkdocs-autorefs>=1.4.0",
-    "mkdocs-material>=9.0.0",
-    "mkdocs-minify-plugin>=0.7.0",
-    "mkdocstrings[python]>=0.30.0",
-    "pymdown-extensions>=10.16.0",
+    "zensical>=0.0.33",
 ]
 
 [tool.uv]
@@ -86,9 +98,8 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "LICENSE",
     "src/opensage",
-    "examples",
+    "agent_library",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -111,8 +122,7 @@ convention = "google"
 known-first-party = ["opensage", "tests"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"LICENSE" = "LICENSE"
-"examples" = "opensage/examples"
+"agent_library" = "opensage/agent_library"
 "src/opensage/cli/assets/opensage_favicon.ico" = "opensage/cli/assets/opensage_favicon.ico"
 "src/opensage/cli/vendor/adk_browser" = "opensage/cli/vendor/adk_browser"
 "src/opensage/plugins/default/claude_code_hooks" = "opensage/plugins/default/claude_code_hooks"

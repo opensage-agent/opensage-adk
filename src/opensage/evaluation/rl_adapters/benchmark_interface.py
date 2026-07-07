@@ -76,7 +76,9 @@ class BenchmarkInterface:
         Raises:
             ImportError: If benchmark not found in registry
         """
+        import pkgutil
         import sys
+        from pathlib import Path
 
         from opensage.evaluation.base import _EVALUATION_REGISTRY, get_evaluation_class
         from opensage.utils.project_info import PROJECT_PATH
@@ -86,24 +88,29 @@ class BenchmarkInterface:
         if project_root not in sys.path:
             sys.path.insert(0, project_root)
 
-        # Import benchmark submodules to trigger Evaluation class registration.
+        # Scan all .py files under benchmarks/{name}/ and
+        # ~/.local/opensage/benchmarks/{name}/ to trigger Evaluation
+        # class registration via __init_subclass__.
         base_path = f"benchmarks.{benchmark_name}"
-        common_submodules = [
-            "vul_detection",
-            "evaluation",
-            "main",
-            "benchmark",
-            "cybergym_static",
-            "mock_debug_evaluation",
+        search_dirs = [
+            PROJECT_PATH / "benchmarks" / benchmark_name,
+            Path.home() / ".local" / "opensage" / "benchmarks" / benchmark_name,
         ]
-
-        for submodule_name in common_submodules:
-            try:
-                importlib.import_module(f"{base_path}.{submodule_name}")
-                logger.info(f"Loaded {base_path}.{submodule_name}")
-                break
-            except ImportError:
+        for search_dir in search_dirs:
+            if not search_dir.is_dir():
                 continue
+            # Add parent to sys.path so user benchmarks are importable
+            parent = str(search_dir.parent.parent)
+            if parent not in sys.path:
+                sys.path.insert(0, parent)
+            for finder, module_name, is_pkg in pkgutil.walk_packages(
+                [str(search_dir)], prefix=f"benchmarks.{benchmark_name}."
+            ):
+                try:
+                    importlib.import_module(module_name)
+                    logger.info("Loaded %s", module_name)
+                except Exception:
+                    logger.debug("Failed to import %s", module_name, exc_info=True)
 
         # Look up the evaluation class from registry
         eval_class = get_evaluation_class(benchmark_name)

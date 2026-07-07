@@ -110,8 +110,13 @@ async def test_tool_response_summarizer_callback_appends_quota_line(monkeypatch)
     monkeypatch.setattr(
         summ, "_get_summary_async", _fake_get_summary_async, raising=True
     )
-    # Ensure Neo4j logging is disabled for this test
-    monkeypatch.setattr(summ, "is_neo4j_logging_enabled", lambda: False, raising=True)
+    # Ensure database short-term memory is disabled for this test
+    monkeypatch.setattr(
+        summ,
+        "is_database_short_term_enabled_from_context",
+        lambda _tool_context: False,
+        raising=True,
+    )
 
     tool_context = _DummyToolContext(used=7, limit=10)
     tool_context._invocation_context.agent = _types.SimpleNamespace(

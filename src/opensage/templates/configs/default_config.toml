@@ -9,13 +9,10 @@ TASK_NAME = "my_analysis_task"
 POC_DIR = "/tmp/poc"
 COMPILE_COMMAND = "arvo compile"
 RUN_COMMAND = "arvo"
-AGENT_STORAGE_PATH = ""
 # History configuration defaults
 MAX_TOOL_RESPONSE_LENGTH = 10000
 MAX_HISTORY_SUMMARY_LENGTH = 100000
 COMPACTION_PERCENT = 100
-# Agent ensemble defaults
-AVAILABLE_MODELS = "openai/gpt-5,openai/o4-mini"
 # Host and Ports
 NEO4J_BOLT_PORT = 7687
 NEO4J_HTTP_PORT = 7474
@@ -23,13 +20,10 @@ PDB_PORT = 1112
 GDB_PORT = 1111
 JOERN_PORT = 18087
 ABSOLUTE_SHARED_DATA_PATH = ""
-HOST_SHARED_MEM_DIR = ""
 
 
 task_name = "${TASK_NAME}"
 src_dir_in_sandbox = "/shared/code"
-agent_storage_path = "${AGENT_STORAGE_PATH}"
-load_dynamic_agents = false
 default_host = ""
 
 [neo4j]
@@ -41,7 +35,6 @@ neo4j_http_port = "${NEO4J_HTTP_PORT}"
 [sandbox]
 backend = "native"
 absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
-host_shared_mem_dir = "${HOST_SHARED_MEM_DIR}"
 
 # OpenSandbox backend configuration (used when sandbox.backend = "opensandbox")
 [sandbox.opensandbox]
@@ -63,6 +56,10 @@ request_working_directory = ""
 # Main sandbox configuration
 [sandbox.sandboxes.main]
 image = "${DEFAULT_IMAGE}_main"
+# Dockerfile path fields are mutually exclusive. Use
+# `agent_relative_dockerfile_path` for Dockerfiles shipped inside an agent dir,
+# `project_relative_dockerfile_path` for OpenSage repo paths, or
+# `absolute_dockerfile_path` for already-resolved paths.
 project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
 timeout = 300
 [sandbox.sandboxes.main.build_args]
@@ -144,27 +141,10 @@ NEO4J_dbms_mode = "SINGLE"
 initializer_timeout_sec = 1800
 
 [llm]
-# Main model configuration
-[llm.model_configs.main]
-model_name = "${MAIN_MODEL}"
-temperature = 0.7
-max_tokens = 4096
-rpm = 60
-tpm = 60000
-
-# Drop/summarize model configuration
 [llm.model_configs.summarize]
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
 max_tokens = 2048
-rpm = 30
-tpm = 30000
-
-# Flag claims model configuration
-[llm.model_configs.flag_claims]
-model_name = "openai/gpt-5"
-temperature = 0.1
-max_tokens = 1024
 rpm = 30
 tpm = 30000
 
@@ -182,11 +162,35 @@ compaction_percent = "${COMPACTION_PERCENT}"
 # Execution order matches the list order — see docs/wiki/Plugins.md for details.
 enabled = []
 
+# Model registry: which LiteLlm instances LLM-driven subagents may use.
+# Configure either ``[[model.available_models]]`` (declarative) OR
+# ``models_python_file`` (path to a .py exporting ``models: list[BaseLlm]``),
+# never both. ``api_key_env`` is the *name* of the env var that holds the secret —
+# never put secrets in TOML directly.
+#
+# Example (declarative):
+# [[model.available_models]]
+# model = "openai/gpt-5.4"
+# api_key_env = "LITELLM_API_KEY"
+# base_url = "http://localhost:8088/v1"
+#
+# Example (python file):
+# [model]
+# models_python_file = "models.py"
 
-[agent_ensemble]
-enforce_thread_safe_tools = false
-thread_safe_tools = []
-available_models_for_ensemble = "${AVAILABLE_MODELS}"
+[model]
+# Session-wide runtime model-call budget in USD. 0 means unlimited.
+budget = 0.0
+
+# Optional custom pricing for models that LiteLLM's cost calculator does not know.
+# Prices are USD per 1M tokens and match the model string used in calls.
+# cached_per_million defaults to prompt_per_million when omitted.
+#
+# [[model.prices]]
+# model = "custom/provider-model"
+# prompt_per_million = 3.0
+# completion_per_million = 15.0
+# cached_per_million = 0.3
 
 [build]
 poc_dir = "${POC_DIR}"

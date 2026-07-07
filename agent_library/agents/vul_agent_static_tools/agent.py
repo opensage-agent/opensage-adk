@@ -1,0 +1,80 @@
+import asyncio
+import logging
+
+from google.adk import Runner
+from google.adk.artifacts import InMemoryArtifactService
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.sessions import InMemorySessionService
+
+from benchmarks.common_tools.retrieval import (
+    get_line_around_linenum_in_file,
+    grep_tool,
+    list_functions_in_file,
+)
+from benchmarks.common_tools.static_analysis import (
+    get_callee,
+    get_caller,
+    joern_query,
+    joern_slice,
+    neo4j_query,
+    search_function,
+)
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.session import get_opensage_session
+from opensage.toolbox.general.bash_tool import bash_tool_main
+
+logger = logging.getLogger(__name__)
+
+
+def mk_agent(opensage_session_id="vulnerability-detection-agent-session"):
+    opensage_session = get_opensage_session(opensage_session_id)
+    vul_detect_agent = OpenSageAgent(
+        name="vulnerability_detection_agent",
+        model=LiteLlm(model="anthropic/claude-sonnet-4-5-20250929"),
+        description="find vulnerabilities existing in this function.",
+        instruction="""
+        You are an expert in vulnerability research. Given a function, detect if any vulnerability exists in this function.
+        You need to first understand the function, and extract context of this function (including caller, callee, etc). And then analyze if any vulnerability exists in this function based on the context.
+        """,
+        tools=[
+            # run_poc_from_script,
+            grep_tool,
+            search_function,
+            get_caller,
+            get_callee,
+            neo4j_query,
+            # joern_slice,
+            # joern_query,
+            # get_shortest_paths_in_callgraph_to_function_in_file,
+            list_functions_in_file,
+            get_line_around_linenum_in_file,
+            # finish_task,
+            # generate_poc_and_submit,
+            bash_tool_main,
+            # create_subagent,
+            # list_active_agents,
+            # call_subagent_as_tool,
+        ],
+    )
+    return vul_detect_agent
+
+
+async def main():
+    root_agent = mk_agent()
+    user_id = "Vul_detection"
+    artifact_service = InMemoryArtifactService()
+    session_service = InMemorySessionService()
+    session = await session_service.create_session(
+        app_name="vul_detect_app", user_id=user_id
+    )
+
+    runner = Runner(
+        app_name=session.app_name,
+        agent=root_agent,
+        artifact_service=artifact_service,
+        session_service=session_service,
+    )
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ArealAdapter(BaseAdapter):
+class ArealAdapter(BaseAdapter, framework="areal"):
     """Adapter for AReaL RL framework integration.
 
     This adapter accepts an ADK-compatible model (ArealLlm) from AReaL,
@@ -165,7 +165,7 @@ class ArealAdapter(BaseAdapter):
             return result
 
         except Exception as e:
-            logger.error(f"OpenSage agent error: {e}", exc_info=True)
+            logger.exception(f"OpenSage agent error: {e}")
             logger.debug(f"generate() ERROR for data_id={data_id}: {e}")
             return {
                 "error": str(e),
@@ -277,11 +277,11 @@ class ArealAdapter(BaseAdapter):
             return float(reward_result)
 
         except Exception as e:
-            logger.warning(f"Reward computation failed, defaulting to 0.0: {e}")
+            logger.warning(
+                f"Reward computation failed, defaulting to 0.0: {e}", exc_info=True
+            )
             logger.debug(f"Reward computation FAILED: {e}")
-            import traceback as tb_mod
 
-            logger.debug(tb_mod.format_exc())
             return 0.0
 
     def update_sample_success(

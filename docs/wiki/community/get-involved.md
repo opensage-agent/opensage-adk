@@ -12,5 +12,5 @@ icon: lucide/users-round
 
 ## How to Contribute
 
-- **GitHub issues**: Please open an issue in `opensage-agent/opensage-adk` with steps to
-  reproduce, expected behavior, and logs if applicable.
+- **GitHub Issues**: Please [open an issue](https://github.com/opensage-agent/opensage-adk/issues) with steps to reproduce, expected behavior, and logs if applicable.
+- **Contribute**: Please refer to [contributing](./contributing.md).

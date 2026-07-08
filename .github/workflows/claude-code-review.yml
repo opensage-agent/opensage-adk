@@ -3,9 +3,18 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to review
+        required: true
+        type: number
 
 jobs:
   claude-review:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,7 +33,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
 
             Review this PR. Focus on correctness, security, and obvious bugs.
             Skip nits and style. Use `gh pr comment` for the summary and

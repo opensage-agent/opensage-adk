@@ -152,7 +152,7 @@ uv run opensage web --agent /path/to/my_agent --port 8000
 ```
 Open the web UI at [http://localhost:8000](http://localhost:8000), chat with the agent, and inspect tool calls and session state from there.
 
-## :mag: Examples
+## :mag: Example Agents
 
 The repo includes [agent library examples](agent_library/) from basic agents to dynamic sub-agents, MCP integrations, tool combos, web search, and agent ensembles.
 
@@ -162,15 +162,6 @@ The repo includes [agent library examples](agent_library/) from basic agents to 
 | [`agent_library/agents_with_features/`](agent_library/agents_with_features/) | Feature-focused demos such as dynamic sub-agents, tool combos, and web search |
 | [`agent_library/agents/`](agent_library/agents/) | More complete agent examples with various tools and skills |
 
-## :book: Documentation
-
-- Docs: https://docs.adk.opensage-agent.ai/
-
-## :handshake: Community
-
-- Discord: https://discord.gg/zbKe5ue8xc
-- GitHub Issues: https://github.com/opensage-agent/opensage-adk/issues
-- Contributing: see [Contributing](https://docs.adk.opensage-agent.ai/community/contributing/) and [Development Guides](https://docs.adk.opensage-agent.ai/inside-opensage/project-structure/)
 
 ## :page_facing_up: Citation
 

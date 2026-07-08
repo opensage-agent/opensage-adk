@@ -20,7 +20,7 @@
   <a href="README.md">English</a> | 中文 •
   <a href="https://opensage-agent.ai/adk.html"><b>Web</b></a> •
   <a href="#rocket-quick-start"><b>Quick Start</b></a> •
-  <a href="https://docs.adk.opensage-agent.ai/"><b>Docs</b></a> •
+  <a href="https://docs.adk.opensage-agent.ai/get-started/welcome/"><b>Docs</b></a> •
   <a href="https://arxiv.org/abs/2602.16891"><b>Paper</b></a>
 </p>
 
@@ -143,7 +143,7 @@ uv run opensage web --agent /path/to/my_agent --port 8000
 
 在 [http://localhost:8000](http://localhost:8000) 打开 Web UI，与 Agent 交互，并查看工具调用和会话状态。
 
-## :mag: 示例
+## :mag: Agents 示例
 
 仓库提供了 [Agent Library 示例](agent_library/)，涵盖基础 Agent、动态子 Agent、MCP 集成、Tool Combo、Web Search 和 Agent Ensemble。
 
@@ -153,15 +153,6 @@ uv run opensage web --agent /path/to/my_agent --port 8000
 | [`agent_library/agents_with_features/`](agent_library/agents_with_features/) | 按功能分类的示例，如动态子 Agent、Tool Combo 和 Web Search |
 | [`agent_library/agents/`](agent_library/agents/) | 更完整的 Agent 示例，覆盖更多工具与技能 |
 
-## :book: 文档
-
-- Docs: https://docs.adk.opensage-agent.ai/
-
-## :handshake: 社区
-
-- Discord: https://discord.gg/zbKe5ue8xc
-- GitHub Issues: https://github.com/opensage-agent/opensage-adk/issues
-- 贡献指南：参见 [Contributing](https://docs.adk.opensage-agent.ai/community/contributing/) 和 [Development Guides](https://docs.adk.opensage-agent.ai/inside-opensage/project-structure/)
 
 ## :page_facing_up: 引用
 

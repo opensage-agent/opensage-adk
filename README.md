@@ -20,7 +20,7 @@ Next generation agent development kit that enables AI to self-create agent topol
   English | <a href="README_zh.md">中文</a> •
   <a href="https://opensage-agent.ai/adk.html"><b>Web</b></a> •
   <a href="#rocket-quick-start"><b>Quick Start</b></a> •
-  <a href="https://docs.adk.opensage-agent.ai/"><b>Docs</b></a> •
+  <a href="https://docs.adk.opensage-agent.ai/get-started/welcome/"><b>Docs</b></a> •
   <a href="https://arxiv.org/abs/2602.16891"><b>Paper</b></a>
 </p>
 

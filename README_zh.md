@@ -11,17 +11,17 @@
 <p align="center">
   <a href="https://github.com/opensage-agent/opensage-adk/stargazers"><img src="https://img.shields.io/github/stars/opensage-agent/opensage-adk?style=flat-square&color=yellow" alt="Stars"/></a>
   <img src="https://img.shields.io/badge/python-3.12%2B-007ACC?style=flat-square&color=bluebrightgreen" alt="Python 3.12+"/>
-  <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square" alt="License: Apache 2.0">
-  <a href="https://discord.gg/zbKe5ue8xc"><img src="https://img.shields.io/badge/💬%20Discord-Join%20Us-5865F2?style=flat-square" alt="Discord"/></a>
+  <img src="https://img.shields.io/badge/许可证-Apache_2.0-blue.svg?style=flat-square" alt="License: Apache 2.0">
+  <a href="https://discord.gg/zbKe5ue8xc"><img src="https://img.shields.io/badge/💬%20Discord-加入我们-5865F2?style=flat-square" alt="Discord"/></a>
   <!-- <a href="https://www.xiaohongshu.com/user/profile/69bf26c7000000003402ea57"><img src="https://img.shields.io/badge/📕%20RedNote-Follow%20Us-FF2442?style=flat-square" alt="RedNote"/></a> -->
 </p>
 
 <p align="center">
   <a href="README.md">English</a> | 中文 •
-  <a href="https://opensage-agent.ai/adk.html"><b>Web</b></a> •
-  <a href="#rocket-quick-start"><b>Quick Start</b></a> •
-  <a href="https://docs.adk.opensage-agent.ai/get-started/welcome/"><b>Docs</b></a> •
-  <a href="https://arxiv.org/abs/2602.16891"><b>Paper</b></a>
+  <a href="https://opensage-agent.ai/adk.html"><b>官网</b></a> •
+  <a href="#rocket-快速开始"><b>快速开始</b></a> •
+  <a href="https://docs.adk.opensage-agent.ai/get-started/welcome/"><b>文档</b></a> •
+  <a href="https://arxiv.org/abs/2602.16891"><b>论文</b></a>
 </p>
 
 ---
@@ -95,7 +95,7 @@ uv sync
 ```
 
 > [!NOTE]
-> 使用 `uv run <command>` 在项目依赖环境中运行命令。使用 `uv add` / `uv remove` 而不是 `pip` 来管理依赖。详见 [uv docs](https://docs.astral.sh/uv/concepts/projects/run)。
+> 使用 `uv run <command>` 在项目依赖环境中运行命令。使用 `uv add` / `uv remove` 而不是 `pip` 来管理依赖。详见 [uv 文档](https://docs.astral.sh/uv/concepts/projects/run)。
 
 ### 创建 Agent
 
@@ -132,7 +132,7 @@ def mk_agent(session_id: str, model=None):
 ```
 
 > [!IMPORTANT]
-> 你需要确保所使用模型的 API key 已经通过环境变量设置，或在初始化模型时直接传入。更多说明见 [Docs](https://docs.adk.opensage-agent.ai/get-started/quick-start/)。
+> 你需要确保所使用模型的 API key 已经通过环境变量设置，或在初始化模型时直接传入。更多说明见[文档](https://docs.adk.opensage-agent.ai/get-started/quick-start/)。
 
 ### 运行 Agent
 
@@ -156,7 +156,7 @@ uv run opensage web --agent /path/to/my_agent --port 8000
 
 ## :page_facing_up: 引用
 
-如果你在研究中使用了 OpenSage，请引用我们的 [paper](https://arxiv.org/abs/2602.16891)。
+如果你在研究中使用了 OpenSage，请考虑引用我们的[论文](https://arxiv.org/abs/2602.16891)。
 
 ```bibtex
 @article{li2026opensage,
@@ -172,4 +172,4 @@ uv run opensage web --agent /path/to/my_agent --port 8000
 
 ## :memo: 许可证
 
-Apache 2.0 - 参见 [LICENSE](./LICENSE)
+Apache 2.0 - 参见[许可证](./LICENSE)
